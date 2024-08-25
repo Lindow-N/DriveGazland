@@ -31,3 +31,12 @@ body {
     text-wrap: balance;
   }
 }
+
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 30px #161d2d inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+input:-webkit-autofill::first-line {
+  font-family: "Chivo", sans-serif;
+}

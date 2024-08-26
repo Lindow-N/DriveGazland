@@ -1,30 +1,41 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { useRouter } from "next/navigation"; // Utilise useRouter de next/navigation
-import { auth } from "../../firebase/firebaseConfig"; // Assure-toi que le chemin est correct
-import { onAuthStateChanged } from "firebase/auth";
+import React, { useState } from "react";
+import DashboardLayout from "../../layouts/DashboardLayout";
+import DashboardHeader from "../../components/header/DashboardHeader";
+import CategoryList from "../../components/list/CategoryList";
 
-export default function DashboardPage() {
-  const router = useRouter();
+const DashboardPage: React.FC = () => {
+  const [selectedCategory, setSelectedCategory] =
+    useState<string>("Tous les fichiers");
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        // Si l'utilisateur n'est pas authentifié, redirige vers la page de login
-        router.push("/");
-      }
-    });
-
-    // Nettoie l'effet en se désinscrivant de l'écouteur Firebase
-    return () => unsubscribe();
-  }, [router]);
+  const categories: string[] = [
+    "Tous les fichiers",
+    "Favoris",
+    "Images",
+    "Vidéos",
+  ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <h1 className="text-3xl font-bold">
-        Bienvenue sur votre tableau de bord !
-      </h1>
-    </div>
+    <DashboardLayout>
+      {/* Contenu principal */}
+      <DashboardHeader greetingText="Bienvenue sur votre tableau de bord !" />
+
+      {/* Utilisation du composant CategoryList */}
+      <CategoryList
+        categories={categories}
+        selectedCategory={selectedCategory}
+        onCategorySelect={setSelectedCategory}
+      />
+
+      {/* Contenu principal */}
+      <div className="min-h-screen flex items-center justify-center bg-dark1">
+        <h1 className="text-3xl font-bold">
+          Bienvenue sur votre tableau de bord !
+        </h1>
+      </div>
+    </DashboardLayout>
   );
-}
+};
+
+export default DashboardPage;

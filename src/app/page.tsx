@@ -1,15 +1,15 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation"; // Utilise useRouter de next/navigation
-import AuthForm from "../components/auth/AuthForm";
+import { useRouter } from "next/navigation";
+import AuthForm from "../components/form/AuthForm";
 import { loginUser } from "../firebase/auth/authService";
-import { showSuccessToast, showErrorToast } from "../utils/toastConfig";
+import { showMockToast, showErrorToast } from "../utils/toastConfig";
 import { firebaseErrors } from "../utils/firebaseErrors";
 import AuthLayout from "../layouts/AuthLayout";
 
 export default function LoginPage() {
-  const router = useRouter(); // Déclaration du hook useRouter
+  const router = useRouter();
 
   const loginFields = [
     { id: "email", label: "Email", type: "text" },
@@ -20,7 +20,7 @@ export default function LoginPage() {
     const { email, password } = formData;
 
     if (!email || !password) {
-      showErrorToast("Tous les champs sont requis.");
+      showMockToast("Faut remplir les champs, dozo.");
       return;
     }
 
@@ -31,8 +31,7 @@ export default function LoginPage() {
 
     try {
       await loginUser(email, password);
-      showSuccessToast("Connexion réussie !");
-      router.push("/dashboard"); // Rediriger vers le tableau de bord après la connexion
+      router.push("/dashboard");
     } catch (error) {
       const errorMessage = firebaseErrors(error.code);
       showErrorToast(errorMessage);

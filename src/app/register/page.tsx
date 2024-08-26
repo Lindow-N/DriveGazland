@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import AuthForm from "../../components/auth/AuthForm";
+import AuthForm from "../../components/form/AuthForm";
 import { registerUser } from "../../firebase/auth/authService";
-import { showSuccessToast, showErrorToast } from "../../utils/toastConfig";
+import { showMockToast, showErrorToast } from "../../utils/toastConfig";
 import { firebaseErrors } from "../../utils/firebaseErrors";
 import AuthLayout from "../../layouts/AuthLayout";
 import router from "next/router";
@@ -20,12 +20,12 @@ export default function RegisterPage() {
     const { username, email, password } = formData;
 
     if (!username || !email || !password) {
-      showErrorToast("Tous les champs sont requis.");
+      showMockToast("Faut remplir les champs, dozo.");
       return;
     }
 
     if (!email.includes("@")) {
-      showErrorToast("Adresse email invalide.");
+      showMockToast("Le mec ne sait pas écrire un email.");
       return;
     }
 
@@ -36,7 +36,6 @@ export default function RegisterPage() {
 
     try {
       await registerUser(email, password);
-      showSuccessToast("Inscription réussie !");
       router.push("/dashboard");
     } catch (error) {
       const errorMessage = firebaseErrors(error.code);

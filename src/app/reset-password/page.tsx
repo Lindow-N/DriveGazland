@@ -2,8 +2,12 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import AuthForm from "../../components/auth/AuthForm";
-import { showSuccessToast, showErrorToast } from "../../utils/toastConfig";
+import AuthForm from "../../components/form/AuthForm";
+import {
+  showSuccessToast,
+  showErrorToast,
+  showMockToast,
+} from "../../utils/toastConfig";
 import { resetPassword } from "../../firebase/auth/authService";
 import AuthLayout from "../../layouts/AuthLayout";
 
@@ -16,7 +20,7 @@ export default function ResetPasswordPage() {
     const { email } = formData;
 
     if (!email) {
-      showErrorToast("L'adresse email est requise.");
+      showMockToast("Le mec ne sait pas écrire un email.");
       return;
     }
 
@@ -27,7 +31,7 @@ export default function ResetPasswordPage() {
       );
       setShowMessage(true);
     } catch (error) {
-      showErrorToast("Erreur lors de l'envoi de l'email de réinitialisation.");
+      showErrorToast("Saint-Jose dès le matin, je me sens pas bien.");
     }
   };
 

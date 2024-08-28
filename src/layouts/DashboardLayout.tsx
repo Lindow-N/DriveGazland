@@ -34,6 +34,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       });
   };
 
+  const handleProfileClick = () => {
+    router.push("/profile");
+  };
+
   // Fonction pour fermer la sidebar
   const handleCloseSidebar = () => {
     setIsSidebarOpen(false);
@@ -114,7 +118,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 <a
                   href="#"
                   className="flex items-center p-2 text-gray-100 rounded-lg dark:text-white hover:bg-gray-700 hover:text-white transition duration-150 ease-in-out"
-                  onClick={handleCloseSidebar}
+                  onClick={() => {
+                    handleProfileClick();
+                    handleCloseSidebar();
+                  }}
                 >
                   <UserCircleIcon className="w-6 h-6 text-gray-400 group-hover:text-white" />
                   <span className="ml-3">Mon Profil</span>

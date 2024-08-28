@@ -5,13 +5,7 @@ import { useDropzone } from "react-dropzone";
 import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
 import DashboardLayout from "../../layouts/DashboardLayout";
-
-interface FilePreview {
-  id: string;
-  file: File;
-  preview: string;
-  tags: string[];
-}
+import { FilePreview } from "../../interfaces/media";
 
 const UploadMediaPage: React.FC = () => {
   const [files, setFiles] = useState<FilePreview[]>([]);

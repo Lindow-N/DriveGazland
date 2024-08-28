@@ -16,7 +16,7 @@ export const showSuccessToast = (message) => {
         }}
       >
         <Image
-          src="/images/success-icon.png"
+          src="/images/toast/success-icon.png"
           alt="Success"
           layout="intrinsic"
           width={75}
@@ -56,7 +56,7 @@ export const showErrorToast = (message) => {
         }}
       >
         <Image
-          src="/images/error-icon.png"
+          src="/images/toast/error-icon.png"
           alt="Error"
           layout="intrinsic"
           width={75}
@@ -96,7 +96,7 @@ export const showMockToast = (message) => {
         }}
       >
         <Image
-          src="/images/mock-icon.png"
+          src="/images/toast/mock-icon.png"
           alt="Mock"
           layout="intrinsic"
           width={75}

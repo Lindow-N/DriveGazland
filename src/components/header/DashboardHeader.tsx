@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import {
   PlusCircleIcon,
   MagnifyingGlassIcon,
@@ -11,8 +12,14 @@ interface HeaderProps {
 }
 
 const DashboardHeader: React.FC<HeaderProps> = ({ greetingText }) => {
+  const router = useRouter();
+
+  const handleAddMediaClick = () => {
+    router.push("/uploadMedia"); // Navigue vers la page UploadMedia
+  };
+
   return (
-    <header className="bg-dark2 px-8 py-6 flex justify-between items-center">
+    <header className="bg-dark2 px-8 py-7 flex justify-between items-center">
       {/* Salutation masquée sur les petits écrans */}
       <h2 className="text-white text-lg md:text-3xl ml-6 hidden lg:block">
         {greetingText}
@@ -31,7 +38,10 @@ const DashboardHeader: React.FC<HeaderProps> = ({ greetingText }) => {
         </div>
 
         {/* Bouton d'ajout de média */}
-        <button className="flex items-center bg-greenPrimary text-white px-3 py-2 rounded-lg hover:bg-green-600 transition duration-150 ease-in-out md:px-4 md:py-2 whitespace-nowrap">
+        <button
+          onClick={handleAddMediaClick}
+          className="flex items-center bg-greenPrimary text-white px-2 py-1 rounded-lg hover:bg-green-600 transition duration-150 ease-in-out md:px-4 md:py-2 whitespace-nowrap"
+        >
           <PlusCircleIcon className="w-7 h-7 mr-0 md:mr-2" />
           <span className="hidden md:inline">Ajouter un média</span>
         </button>

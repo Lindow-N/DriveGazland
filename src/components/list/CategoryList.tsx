@@ -9,12 +9,12 @@ const CategoryList: React.FC<CategoryListProps> = ({
   onCategorySelect,
 }) => {
   return (
-    <div className="bg-dark1 p-4 sm:p-8 md:p-16">
+    <div className="bg-dark1 p-4 sm:p-8 md:p-16 md:pb-0">
       <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-4">
         {selectedCategory}
       </h2>
 
-      <div className="flex space-x-2 sm:space-x-4 overflow-x-auto pb-4">
+      <div className="flex space-x-2 sm:space-x-4 overflow-x-auto">
         {categories.map((category) => (
           <button
             key={category}

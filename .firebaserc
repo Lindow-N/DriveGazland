@@ -1,5 +1,8 @@
 {
   "projects": {
     "default": "drivegazland"
-  }
+  },
+  "targets": {},
+  "etags": {},
+  "dataconnectEmulatorConfig": {}
 }

@@ -77,7 +77,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <div className="flex flex-col h-full px-4 py-6">
           {/* Contenu supérieur de la sidebar */}
           <div>
-            <div className="flex items-center justify-center mb-8">
+            <div className="flex items-center justify-center mb-8 md:mb-12">
               <Image
                 src="/images/GazlandprojetDashboard.png"
                 alt="Logo"
@@ -109,16 +109,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                   <span className="ml-3">Classement</span>
                 </a>
               </li>
-              <li>
-                <a
-                  href="#"
-                  className="flex items-center p-2 text-gray-100 rounded-lg dark:text-white hover:bg-gray-700 hover:text-white transition duration-150 ease-in-out"
-                  onClick={handleCloseSidebar}
-                >
-                  <UsersIcon className="w-6 h-6 text-gray-400 group-hover:text-white" />
-                  <span className="ml-3">Équipe</span>
-                </a>
-              </li>
+
               <li>
                 <a
                   href="#"
@@ -137,7 +128,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                   <FolderIcon className="w-6 h-6 me-2" />
                   Tous les fichiers
                 </span>
-                <span className="bg-gray-700 text-xs rounded-full px-2 py-1">
+                <span className="bg-gray-700 text-xs rounded-md px-2 py-1">
                   48
                 </span>
               </div>
@@ -146,7 +137,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                   <FolderIcon className="w-6 h-6 me-2" />
                   Tous les dossiers
                 </span>
-                <span className="bg-gray-700 text-xs rounded-full px-2 py-1">
+                <span className="bg-gray-700 text-xs rounded-md px-2 py-1">
                   6
                 </span>
               </div>
@@ -170,7 +161,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       </aside>
 
       {/* Contenu principal */}
-      <div className="flex-1 ml-0 lg:ml-[20%]">{children}</div>
+      <div className="flex-1 ml-0 lg:ml-[20%] ">{children}</div>
     </div>
   );
 };

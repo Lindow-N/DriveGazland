@@ -1,6 +1,7 @@
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { UserProvider } from "../context/UserContext";
 
 export default function RootLayout({ children }) {
   return (
@@ -12,7 +13,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="font-sans bg-gray-100">
-        {children}
+        <UserProvider>{children}</UserProvider>
         <ToastContainer />
       </body>
     </html>

@@ -6,6 +6,7 @@ import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import { FilePreview } from "../../interfaces/media";
+import withAuth from "../../utils/withAuth";
 
 const UploadMediaPage: React.FC = () => {
   const [files, setFiles] = useState<FilePreview[]>([]);
@@ -142,4 +143,4 @@ const UploadMediaPage: React.FC = () => {
   );
 };
 
-export default UploadMediaPage;
+export default withAuth(UploadMediaPage);

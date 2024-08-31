@@ -1,15 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
 import AuthForm from "../../components/form/AuthForm";
 import { registerUser } from "../../firebase/auth/authService";
 import { showMockToast, showErrorToast } from "../../utils/toastConfig";
 import { firebaseErrors } from "../../utils/firebaseErrors";
 import AuthLayout from "../../layouts/AuthLayout";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
+  const router = useRouter();
+
   const registerFields = [
     { id: "username", label: "Pseudo", type: "text" },
     { id: "email", label: "Email", type: "text" },
@@ -35,11 +36,15 @@ export default function RegisterPage() {
     }
 
     try {
-      await registerUser(email, password);
+      await registerUser(email, password, username);
       router.push("/dashboard");
     } catch (error) {
-      const errorMessage = firebaseErrors(error.code);
-      showErrorToast(errorMessage);
+      if (error.code && firebaseErrors(error.code)) {
+        const errorMessage = firebaseErrors(error.code);
+        showErrorToast(errorMessage);
+      } else {
+        showErrorToast("Une erreur inconnue s'est produite.");
+      }
     }
   };
 

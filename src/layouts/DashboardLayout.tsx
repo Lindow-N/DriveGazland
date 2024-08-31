@@ -15,6 +15,7 @@ import {
 import { useRouter } from "next/navigation";
 import { auth } from "../firebase/firebaseConfig";
 import { signOut } from "firebase/auth";
+import { useUser } from "../context/UserContext";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -23,15 +24,15 @@ interface DashboardLayoutProps {
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
+  const { logout } = useUser();
 
-  const handleSignOut = () => {
-    signOut(auth)
-      .then(() => {
-        router.push("/");
-      })
-      .catch((error) => {
-        console.error("Erreur lors de la déconnexion :", error);
-      });
+  const handleSignOut = async () => {
+    try {
+      await logout();
+      router.push("/");
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion :", error);
+    }
   };
 
   const handleProfileClick = () => {
@@ -105,7 +106,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/ranking"
                   className="flex items-center p-2 text-gray-100 rounded-lg dark:text-white hover:bg-gray-700 hover:text-white transition duration-150 ease-in-out"
                   onClick={handleCloseSidebar}
                 >
@@ -153,10 +154,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             {/* Bouton de déconnexion juste en dessous */}
             <div className="mt-4">
               <button
-                onClick={() => {
-                  handleSignOut();
-                  handleCloseSidebar();
-                }}
+                onClick={handleSignOut}
                 className="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 hover:text-white transition duration-150 ease-in-out"
               >
                 <ArrowLeftEndOnRectangleIcon className="w-6 h-6 text-gray-400" />

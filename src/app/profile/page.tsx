@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
 import DashboardLayout from "../../layouts/DashboardLayout";
+import withAuth from "../../utils/withAuth";
 
 const ProfilePage: React.FC = () => {
   // État pour les tags et les succès
@@ -146,4 +147,4 @@ const ProfilePage: React.FC = () => {
   );
 };
 
-export default ProfilePage;
+export default withAuth(ProfilePage);

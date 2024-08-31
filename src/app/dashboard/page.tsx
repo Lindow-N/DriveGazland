@@ -5,6 +5,7 @@ import DashboardLayout from "../../layouts/DashboardLayout";
 import DashboardHeader from "../../components/header/DashboardHeader";
 import CategoryList from "../../components/list/CategoryList";
 import FileGrid from "../../components/list/FileGrid";
+import withAuth from "../../utils/withAuth";
 
 const DashboardPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] =
@@ -84,4 +85,4 @@ const DashboardPage: React.FC = () => {
   );
 };
 
-export default DashboardPage;
+export default withAuth(DashboardPage);

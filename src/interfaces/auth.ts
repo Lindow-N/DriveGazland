@@ -1,4 +1,5 @@
 import { Image } from "./media";
+import { Timestamp } from "firebase/firestore";
 
 export interface Field {
   id: string;
@@ -25,9 +26,9 @@ export interface User {
   pseudonym: string;
   isValidated: boolean;
   totalFileUploads: number;
-  creationDate: Date;
+  creationDate: Date | Timestamp;
   recentFiles: string[];
   achievements: { [key: string]: boolean };
-  tags: string[];
+  createdTags: string[];
   favorites: Image[];
 }

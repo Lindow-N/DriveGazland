@@ -26,12 +26,10 @@ export default function ResetPasswordPage() {
 
     try {
       await resetPassword(email);
-      showSuccessToast(
-        "Un email de réinitialisation de mot de passe a été envoyé !"
-      );
+      showSuccessToast("Je t'ai envoyé un email pelo");
       setShowMessage(true);
     } catch (error) {
-      showErrorToast("Saint-Jose dès le matin, je me sens pas bien.");
+      showErrorToast("Saint-Jose dès le matin, me sens pas bien.");
     }
   };
 

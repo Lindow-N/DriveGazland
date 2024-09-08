@@ -2,6 +2,7 @@ import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { UserProvider } from "../context/UserContext";
+import { TagProvider } from "../context/TagContext";
 
 export default function RootLayout({ children }) {
   return (
@@ -13,7 +14,9 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="font-sans bg-gray-100">
-        <UserProvider>{children}</UserProvider>
+        <UserProvider>
+          <TagProvider>{children}</TagProvider>
+        </UserProvider>
         <ToastContainer />
       </body>
     </html>

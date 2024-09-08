@@ -25,7 +25,7 @@ export const registerUser = async (email, password, pseudonym) => {
       creationDate: new Date(),
       recentFiles: [],
       achievements: {},
-      tags: [],
+      createdTags: [],
       favorites: [],
     });
 

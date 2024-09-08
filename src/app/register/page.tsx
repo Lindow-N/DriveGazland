@@ -37,7 +37,7 @@ export default function RegisterPage() {
 
     try {
       await registerUser(email, password, username);
-      router.push("/dashboard");
+      router.push("/account-validation");
     } catch (error) {
       if (error.code && firebaseErrors(error.code)) {
         const errorMessage = firebaseErrors(error.code);

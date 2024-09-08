@@ -1,8 +1,10 @@
-// src/utils/toastConfig.js
 import { toast } from "react-toastify";
 import Image from "next/image";
+import { getRandomMessage } from "../utils/helper";
+import { successMessages, errorMessages } from "./toastMessages";
 
-export const showSuccessToast = (message) => {
+export const showSuccessToast = (message = null) => {
+  const toastMessage = message || getRandomMessage(successMessages);
   toast.success(
     <div className="flex items-center">
       <div
@@ -24,7 +26,7 @@ export const showSuccessToast = (message) => {
         />
       </div>
       <span className="flex-grow text-left ml-3" style={{ color: "#ffffff" }}>
-        {message}
+        {toastMessage}
       </span>
     </div>,
     {
@@ -42,7 +44,9 @@ export const showSuccessToast = (message) => {
   );
 };
 
-export const showErrorToast = (message) => {
+// Fonction pour afficher un toast d'erreur
+export const showErrorToast = (message = null) => {
+  const toastMessage = message || getRandomMessage(errorMessages); // Utiliser le message fourni ou un message aléatoire
   toast.error(
     <div className="flex items-center">
       <div
@@ -64,7 +68,7 @@ export const showErrorToast = (message) => {
         />
       </div>
       <span className="flex-grow text-left ml-3" style={{ color: "#ffffff" }}>
-        {message}
+        {toastMessage}
       </span>
     </div>,
     {
@@ -82,7 +86,9 @@ export const showErrorToast = (message) => {
   );
 };
 
-export const showMockToast = (message) => {
+// Fonction pour afficher un toast "mock"
+export const showMockToast = (message = null) => {
+  const toastMessage = message || "Ceci est un toast moqueur ! 😜"; // Un message par défaut si aucun n'est fourni
   toast.error(
     <div className="flex items-center">
       <div
@@ -104,7 +110,7 @@ export const showMockToast = (message) => {
         />
       </div>
       <span className="flex-grow text-left ml-3" style={{ color: "#ffffff" }}>
-        {message}
+        {toastMessage}
       </span>
     </div>,
     {

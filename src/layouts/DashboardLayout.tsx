@@ -44,6 +44,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     setIsSidebarOpen(false);
   };
 
+  const handleRankingClick = () => {
+    router.push("/ranking");
+  };
+
   // Empêcher le défilement du body lorsque la sidebar est ouverte
   useEffect(() => {
     if (isSidebarOpen) {
@@ -108,7 +112,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 <a
                   href="/ranking"
                   className="flex items-center p-2 text-gray-100 rounded-lg dark:text-white hover:bg-gray-700 hover:text-white transition duration-150 ease-in-out"
-                  onClick={handleCloseSidebar}
+                  onClick={handleRankingClick}
                 >
                   <TrophyIcon className="w-6 h-6 text-gray-400 group-hover:text-white" />
                   <span className="ml-3">Classement</span>

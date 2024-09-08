@@ -1,13 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import DashboardHeader from "../../components/header/DashboardHeader";
 import CategoryList from "../../components/list/CategoryList";
 import FileGrid from "../../components/list/FileGrid";
 import withAuth from "../../utils/withAuth";
+import { useUser } from "../../context/UserContext";
+import { showSuccessToast } from "../../utils/toastConfig";
 
 const DashboardPage: React.FC = () => {
+  const { user } = useUser();
   const [selectedCategory, setSelectedCategory] =
     useState<string>("Tous les fichiers");
 
@@ -18,7 +21,6 @@ const DashboardPage: React.FC = () => {
     "Vidéos",
   ];
 
-  // Données de test pour les fichiers
   const files = [
     {
       id: 1,
@@ -72,7 +74,7 @@ const DashboardPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <DashboardHeader greetingText="Bienvenue sur votre tableau de bord !" />
+      <DashboardHeader greetingText={`Bienvenue, ${user?.pseudonym} !`} />
       <CategoryList
         categories={categories}
         selectedCategory={selectedCategory}

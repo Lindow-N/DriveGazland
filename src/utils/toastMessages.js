@@ -1,0 +1,32 @@
+export const successMessages = [
+  "Psartek 🎉",
+  "Pas mal elle",
+  "Mets les nudes de ta soeur plutot 👍",
+  "Ho ouai",
+  "Ho ouai",
+  "Ho ouai",
+  "Gors",
+  "Sa va",
+  "Pas mal",
+  "chaque upload fait grandir de 1 cm ton sexe",
+  "Bien joué !",
+  "Ha ouai j'aime bien elle",
+  "ez",
+  "gg",
+  "Sa manque de hentai tout sa",
+  "ok super",
+  "Basique",
+  "C'est pas mal",
+  "ha ouai m'en souviens de celle la",
+  "J'aime bien",
+  "J'aime bien celle la",
+  "Tu peux faire mieux",
+  "si c'est pour upload sa...",
+];
+
+export const errorMessages = [
+  "Oups, quelque chose s'est mal passé ! 😕",
+  "merde j'ai cassé un truc",
+  "oula... c'est pas bon",
+  "saint josé des le matin, me sent pas bien",
+];

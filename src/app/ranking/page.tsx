@@ -4,18 +4,23 @@ import React, { useState } from "react";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import CategoryList from "../../components/list/CategoryList";
 import withAuth from "../../utils/withAuth";
+import { useUser } from "../../context/UserContext";
 
 const RankingPage: React.FC = () => {
-  const categories = ["Nombre d'uploads", "Nombre de partages", "Succès"];
+  const categories = ["Nombre d'uploads", "Nombre de tags créés"];
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
 
-  // Exemple de liste d'utilisateurs avec des données fictives
-  const users = [
-    { id: 1, name: "Utilisateur 1", value: 120 },
-    { id: 2, name: "Utilisateur 2", value: 110 },
-    { id: 3, name: "Utilisateur 3", value: 105 },
-    { id: 4, name: "Utilisateur 4", value: 100 },
-  ];
+  const { allUsers } = useUser();
+
+  // Fonction pour trier les utilisateurs en fonction de la catégorie sélectionnée
+  const sortedUsers = (allUsers || []).sort((a, b) => {
+    if (selectedCategory === "Nombre d'uploads") {
+      return (b.totalFileUploads || 0) - (a.totalFileUploads || 0);
+    } else if (selectedCategory === "Nombre de tags créés") {
+      return (b.createdTags?.length || 0) - (a.createdTags?.length || 0);
+    }
+    return 0;
+  });
 
   return (
     <DashboardLayout>
@@ -31,22 +36,21 @@ const RankingPage: React.FC = () => {
           onCategorySelect={setSelectedCategory}
         />
 
-        {/* Liste des utilisateurs */}
+        {/* Liste des utilisateurs triés */}
         <div className="bg-dark2 p-4 rounded-lg shadow-md mt-6">
-          <h2 className="text-xl font-bold font-title mb-4">
-            {selectedCategory}
-          </h2>
           <div className="space-y-4">
-            {users.map((user) => (
+            {sortedUsers.map((user) => (
               <div
                 key={user.id}
                 className="flex items-center bg-dark3 p-4 rounded-md shadow hover:shadow-lg transition-shadow duration-300"
               >
                 <div className="flex-1">
-                  <h3 className="font-bold text-white">{user.name}</h3>
+                  <h3 className="font-bold text-white">{user.pseudonym}</h3>
                 </div>
                 <span className="text-greenPrimary font-bold">
-                  {user.value}
+                  {selectedCategory === "Nombre d'uploads"
+                    ? user.totalFileUploads
+                    : user?.createdTags?.length || 0}
                 </span>
               </div>
             ))}

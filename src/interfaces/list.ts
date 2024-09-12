@@ -5,8 +5,8 @@ export interface CategoryListProps {
 }
 
 export interface File {
-  id: number;
+  id: string;
   imageSrc: string;
   title: string;
-  documentCount: number;
+  totalFiles: number;
 }

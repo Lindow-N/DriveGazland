@@ -9,12 +9,7 @@ import React, {
 } from "react";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
-
-interface TagContextType {
-  tags: string[];
-  tagsWithData: { id: string; data: any }[];
-  loadingTags: boolean;
-}
+import { TagContextType } from "../interfaces/context";
 
 const TagContext = createContext<TagContextType | undefined>(undefined);
 
@@ -28,6 +23,7 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
     []
   );
   const [loadingTags, setLoadingTags] = useState<boolean>(true);
+  const [totalTags, setTotalTags] = useState<number>(0); // État pour stocker le nombre total de tags
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -43,6 +39,7 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
 
         setTags(tagList);
         setTagsWithData(tagsDataList);
+        setTotalTags(querySnapshot.size); // Stocke le nombre total de documents/tags
       } catch (error) {
         console.error("Erreur lors de la récupération des tags :", error);
       } finally {
@@ -54,7 +51,7 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
   }, []);
 
   return (
-    <TagContext.Provider value={{ tags, tagsWithData, loadingTags }}>
+    <TagContext.Provider value={{ tags, tagsWithData, loadingTags, totalTags }}>
       {children}
     </TagContext.Provider>
   );

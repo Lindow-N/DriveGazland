@@ -16,13 +16,7 @@ import {
   signOut,
 } from "firebase/auth";
 import { User } from "../interfaces/auth";
-
-interface UserContextType {
-  user: User | null;
-  allUsers: User[] | null;
-  loading: boolean;
-  logout: () => Promise<void>;
-}
+import { UserContextType } from "../interfaces/context";
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 

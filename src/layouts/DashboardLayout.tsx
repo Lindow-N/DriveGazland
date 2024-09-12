@@ -16,6 +16,8 @@ import { useRouter } from "next/navigation";
 import { auth } from "../firebase/firebaseConfig";
 import { signOut } from "firebase/auth";
 import { useUser } from "../context/UserContext";
+import { useTags } from "../context/TagContext";
+import { useFiles } from "../context/FilesContext";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -25,6 +27,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
   const { logout } = useUser();
+  const { totalTags } = useTags();
+  const { totalFiles, loadingFiles } = useFiles();
 
   const handleSignOut = async () => {
     try {
@@ -141,7 +145,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                   Tous les fichiers
                 </span>
                 <span className="bg-gray-700 text-xs rounded-md px-2 py-1">
-                  48
+                  {totalFiles}
                 </span>
               </div>
               <div className="flex items-center justify-between p-2 rounded-lg bg-dark3">
@@ -150,7 +154,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                   Tous les dossiers
                 </span>
                 <span className="bg-gray-700 text-xs rounded-md px-2 py-1">
-                  6
+                  {totalTags}
                 </span>
               </div>
             </div>

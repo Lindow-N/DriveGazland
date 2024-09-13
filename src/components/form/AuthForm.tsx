@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { AuthFormProps, Field } from "../../interfaces/auth";
+import { AuthFormProps } from "../../interfaces/auth";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 const AuthForm: React.FC<AuthFormProps> = ({
@@ -34,7 +34,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
   };
 
   return (
-    <main className="bg-dark3 max-w-lg mx-auto p-8 md:p-12 my-10 rounded-lg shadow-2xl">
+    <main className="bg-dark3 max-w-lg mx-auto p-6 md:p-10 rounded-lg shadow-2xl">
       <section>
         <h3 className="font-bold text-2xl text-white font-subtitle">{title}</h3>
         <p className="text-gray-300 pt-2">{subtitle}</p>
@@ -45,7 +45,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
           {message}
         </div>
       ) : (
-        <section className="mt-10">
+        <section className="mt-8">
           <form className="flex flex-col" onSubmit={handleSubmit}>
             {fields.map((field, index) => (
               <div key={index} className="mb-6 pt-3 rounded bg-dark2 relative">
@@ -102,7 +102,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
       )}
 
       {linkText && (
-        <div className="max-w-lg mx-auto text-center mt-12 mb-6">
+        <div className="max-w-lg mx-auto text-center mt-8 mb-6">
           <p className="text-white">
             {linkDescription}{" "}
             <a

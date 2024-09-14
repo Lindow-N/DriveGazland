@@ -7,12 +7,13 @@ import React, {
   useState,
   ReactNode,
 } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase/firebaseConfig"; // Assure-toi que ton fichier firebaseConfig est correctement configuré
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
 
 interface FilesContextType {
   totalFiles: number;
   loadingFiles: boolean;
+  searchFilesByTags: (tags: string[]) => Promise<any[]>; // Nouvelle fonction
 }
 
 const FilesContext = createContext<FilesContextType | undefined>(undefined);
@@ -22,29 +23,62 @@ interface FilesProviderProps {
 }
 
 export const FilesProvider: React.FC<FilesProviderProps> = ({ children }) => {
-  const [totalFiles, setTotalFiles] = useState<number>(0); // Stocke le nombre total de fichiers
-  const [loadingFiles, setLoadingFiles] = useState<boolean>(true); // Indique si les fichiers sont en cours de chargement
+  const [totalFiles, setTotalFiles] = useState<number>(0);
+  const [loadingFiles, setLoadingFiles] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchTotalFiles = async () => {
       try {
-        const filesSnapshot = await getDocs(collection(db, "files")); // Récupère tous les fichiers de la collection "files"
-        setTotalFiles(filesSnapshot.size); // Stocke le nombre total de fichiers
+        const filesSnapshot = await getDocs(collection(db, "files"));
+        setTotalFiles(filesSnapshot.size);
       } catch (error) {
         console.error(
           "Erreur lors de la récupération du nombre total de fichiers :",
           error
         );
       } finally {
-        setLoadingFiles(false); // Indique que le chargement est terminé
+        setLoadingFiles(false);
       }
     };
 
     fetchTotalFiles();
   }, []);
 
+  // Fonction pour rechercher des fichiers en fonction des tags
+  const searchFilesByTags = async (tags: string[]) => {
+    if (tags.length === 0) return [];
+
+    try {
+      const filesCollection = collection(db, "files");
+
+      // Récupérer tous les fichiers qui contiennent **au moins un** des tags
+      const filesQuery = query(
+        filesCollection,
+        where("tags", "array-contains-any", tags)
+      );
+
+      const querySnapshot = await getDocs(filesQuery);
+      const files = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // Filtrer côté client pour garder uniquement les fichiers qui contiennent tous les tags
+      const filteredFiles = files.filter((file) =>
+        tags.every((tag) => file.tags.includes(tag))
+      );
+
+      return filteredFiles;
+    } catch (error) {
+      console.error("Erreur lors de la recherche des fichiers :", error);
+      return [];
+    }
+  };
+
   return (
-    <FilesContext.Provider value={{ totalFiles, loadingFiles }}>
+    <FilesContext.Provider
+      value={{ totalFiles, loadingFiles, searchFilesByTags }}
+    >
       {children}
     </FilesContext.Provider>
   );

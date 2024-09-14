@@ -15,11 +15,11 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="font-sans bg-gray-100">
-        <UserProvider>
-          <TagProvider>
+        <TagProvider>
+          <UserProvider>
             <FilesProvider>{children}</FilesProvider>
-          </TagProvider>
-        </UserProvider>
+          </UserProvider>
+        </TagProvider>
         <ToastContainer />
       </body>
     </html>

@@ -31,9 +31,6 @@ export default function LoginPage() {
 
     try {
       await loginUser(email, password);
-
-      router.push("/dashboard");
-      //router.push("/account-validation");
     } catch (error) {
       const errorMessage = firebaseErrors(error.code);
       showErrorToast(errorMessage);

@@ -1,91 +1,114 @@
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { auth, db } from "../firebase/firebaseConfig";
-import { doc, getDoc, onSnapshot, collection } from "firebase/firestore";
-import {
-  onAuthStateChanged,
-  User as FirebaseUser,
-  signOut,
-} from "firebase/auth";
+import { doc, onSnapshot, collection } from "firebase/firestore";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { createContext, useContext, useEffect, useState } from "react";
+import { showSuccessToast, showErrorToast } from "../utils/toastConfig";
 import { User } from "../interfaces/auth";
 import { UserContextType } from "../interfaces/context";
+import { useTags } from "./TagContext";
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 interface UserProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
+
+// Hook pour utiliser le contexte utilisateur
+export const useUser = (): UserContextType => {
+  const context = useContext(UserContext);
+  if (context === undefined) {
+    throw new Error("useUser must be used within a UserProvider");
+  }
+  return context;
+};
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [allUsers, setAllUsers] = useState<User[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [toastShown, setToastShown] = useState<boolean>(false);
   const router = useRouter();
+  const pathname = usePathname();
+  const { tags, loadingTags } = useTags();
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(
-      auth,
-      async (currentUser: FirebaseUser | null) => {
-        if (currentUser) {
-          const userDocRef = doc(db, "users", currentUser.uid);
+    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        const userDocRef = doc(db, "users", currentUser.uid);
 
-          const unsubscribeSnapshot = onSnapshot(userDocRef, (doc) => {
-            if (doc.exists()) {
-              const userData = { ...doc.data(), id: currentUser.uid } as User;
-              setUser(userData);
+        const unsubscribeSnapshot = onSnapshot(userDocRef, (doc) => {
+          if (doc.exists()) {
+            const userData = { ...doc.data(), id: currentUser.uid } as User;
+            setUser(userData);
 
+            const toastAlreadyShown = localStorage.getItem("toastShown");
+
+            if (!toastAlreadyShown && !toastShown) {
+              showSuccessToast(`Salut ${userData.pseudonym} !`);
+              setToastShown(true);
+              localStorage.setItem("toastShown", "true");
+            }
+
+            if (!loadingTags) {
               if (!userData.isValidated) {
                 router.push("/account-validation");
+              } else {
+                if (
+                  ![
+                    "/dashboard",
+                    "/ranking",
+                    "/profile",
+                    "/uploadMedia",
+                  ].includes(pathname ?? "")
+                ) {
+                  router.push("/dashboard");
+                }
               }
-            } else {
-              setUser(null);
             }
-            setLoading(false);
-          });
-
-          // Écoute en temps réel pour tous les utilisateurs
-          const usersCollectionRef = collection(db, "users");
-          const unsubscribeAllUsers = onSnapshot(
-            usersCollectionRef,
-            (snapshot) => {
-              const users = snapshot.docs.map((doc) => ({
-                ...doc.data(),
-                id: doc.id,
-              })) as User[];
-
-              setAllUsers(users);
-            }
-          );
-
-          return () => {
-            unsubscribeSnapshot();
-            unsubscribeAllUsers();
-          };
-        } else {
-          setUser(null);
+          } else {
+            setUser(null);
+          }
           setLoading(false);
-        }
+        });
+
+        const usersCollectionRef = collection(db, "users");
+        const unsubscribeAllUsers = onSnapshot(
+          usersCollectionRef,
+          (snapshot) => {
+            const users = snapshot.docs.map((doc) => ({
+              ...doc.data(),
+              id: doc.id,
+            })) as User[];
+            setAllUsers(users);
+          }
+        );
+
+        return () => {
+          unsubscribeSnapshot();
+          unsubscribeAllUsers();
+        };
+      } else {
+        setUser(null);
+        setLoading(false);
       }
-    );
+    });
 
     return () => unsubscribeAuth();
-  }, [router]);
+  }, [router, toastShown, loadingTags, pathname]);
 
   const logout = async () => {
     try {
       await signOut(auth);
       setUser(null);
+      setToastShown(false);
+      localStorage.removeItem("toastShown");
       router.push("/");
     } catch (error) {
       console.error("Erreur lors de la déconnexion :", error);
+      showErrorToast("Ne part pas ! :(");
     }
   };
 
@@ -94,12 +117,4 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       {children}
     </UserContext.Provider>
   );
-};
-
-export const useUser = (): UserContextType => {
-  const context = useContext(UserContext);
-  if (context === undefined) {
-    throw new Error("useUser must be used within a UserProvider");
-  }
-  return context;
 };

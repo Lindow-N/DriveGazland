@@ -1,52 +1,126 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   PlusCircleIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
+import { useTags } from "../../context/TagContext";
+import { useFiles } from "../../context/FilesContext"; // Import du contexte pour la recherche de fichiers
+import Tag from "../../components/shared/Tag";
 
 interface HeaderProps {
   greetingText: string;
+  onSearchResults: (files: any[]) => void; // Prop pour remonter les résultats de la recherche
 }
 
-const DashboardHeader: React.FC<HeaderProps> = ({ greetingText }) => {
+const DashboardHeader: React.FC<HeaderProps> = ({
+  greetingText,
+  onSearchResults,
+}) => {
   const router = useRouter();
+  const { tags } = useTags();
+  const { searchFilesByTags } = useFiles();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredTags, setFilteredTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  const handleAddMediaClick = () => {
-    router.push("/uploadMedia"); // Navigue vers la page UploadMedia
+  useEffect(() => {
+    if (searchTerm.length > 0) {
+      const suggestions = tags
+        .filter((tag) => tag.toLowerCase().startsWith(searchTerm.toLowerCase()))
+        .slice(0, 5);
+      setFilteredTags(suggestions);
+    } else {
+      setFilteredTags([]);
+    }
+  }, [searchTerm, tags]);
+
+  const handleAddTag = (tag: string) => {
+    if (!selectedTags.includes(tag)) {
+      setSelectedTags((prevTags) => [...prevTags, tag]);
+    }
+    setSearchTerm("");
+    setFilteredTags([]);
   };
 
+  const handleRemoveTag = (tagToRemove: string) => {
+    setSelectedTags((prevTags) =>
+      prevTags.filter((tag) => tag !== tagToRemove)
+    );
+  };
+
+  const handleAddMediaClick = () => {
+    router.push("/uploadMedia");
+  };
+
+  useEffect(() => {
+    if (selectedTags.length > 0) {
+      searchFilesByTags(selectedTags).then((files) => {
+        onSearchResults(files); // Remonte les résultats au DashboardPage
+      });
+    } else {
+      onSearchResults([]); // Réinitialiser les résultats quand aucun tag n'est sélectionné
+    }
+  }, [selectedTags, searchFilesByTags, onSearchResults]);
+
   return (
-    <header className="bg-dark2 px-8 py-7 flex justify-between items-center">
-      {/* Salutation masquée sur les petits écrans */}
-      <h2 className="text-white text-lg md:text-3xl ml-6 hidden lg:block">
-        {greetingText}
-      </h2>
+    <>
+      <header className="bg-dark2 px-8 py-7 flex justify-between items-center">
+        <h2 className="text-white text-lg md:text-3xl ml-6 hidden lg:block">
+          {greetingText}
+        </h2>
 
-      {/* Container pour la barre de recherche et le bouton avec marge à gauche */}
-      <div className="flex items-center w-full lg:w-2/3 ml-6">
-        {/* Barre de recherche avec plus de place sur mobile/tablette */}
-        <div className="flex items-center bg-dark3 rounded-lg w-full mr-4 lg:w-3/4">
-          <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 ml-2" />
-          <input
-            type="text"
-            placeholder="Rechercher..."
-            className="w-full px-2 py-2 bg-dark3 text-white placeholder-gray-400 rounded-lg focus:outline-none"
-          />
+        <div className="flex items-center w-full lg:w-2/3 ml-6 justify-between">
+          <div className="relative flex items-center bg-dark3 rounded-lg w-full lg:w-3/4 mr-4">
+            <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 ml-2" />
+            <input
+              type="text"
+              placeholder="Rechercher des tags..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-2 py-2 bg-dark3 text-white placeholder-gray-400 rounded-lg focus:outline-none"
+            />
+            {filteredTags.length > 0 && (
+              <div className="absolute top-full mt-2 w-full bg-dark3 rounded-md shadow-lg max-h-40 overflow-y-auto z-10">
+                {filteredTags.map((tag) => (
+                  <div
+                    key={tag}
+                    className="p-2 hover:bg-dark2 cursor-pointer text-white"
+                    onClick={() => handleAddTag(tag)}
+                  >
+                    {tag}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={handleAddMediaClick}
+            className="flex items-center bg-greenPrimary text-white px-2 py-2 rounded-lg hover:bg-green-600 transition duration-150 ease-in-out whitespace-nowrap"
+          >
+            <PlusCircleIcon className="w-7 h-7 mr-0 md:mr-2" />
+            <span className="hidden md:inline">Ajouter un média</span>
+          </button>
         </div>
+      </header>
 
-        {/* Bouton d'ajout de média */}
-        <button
-          onClick={handleAddMediaClick}
-          className="flex items-center bg-greenPrimary text-white px-2 py-1 rounded-lg hover:bg-green-600 transition duration-150 ease-in-out md:px-4 md:py-2 whitespace-nowrap"
-        >
-          <PlusCircleIcon className="w-7 h-7 mr-0 md:mr-2" />
-          <span className="hidden md:inline">Ajouter un média</span>
-        </button>
-      </div>
-    </header>
+      {selectedTags.length > 0 && (
+        <div className="bg-dark1 py-4 px-8">
+          <div className="flex flex-wrap justify-center">
+            {selectedTags.map((tag, index) => (
+              <Tag
+                key={index}
+                text={tag}
+                onRemove={() => handleRemoveTag(tag)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

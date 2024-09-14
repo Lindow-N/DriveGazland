@@ -7,12 +7,12 @@ interface FileGridProps {
   files: File[];
 }
 
-const isVideo = (url: string) => {
+const isVideo = (url: string | undefined) => {
   return (
-    url.includes("video") ||
-    url.endsWith(".mp4") ||
-    url.endsWith(".mov") ||
-    url.endsWith(".avi")
+    url?.includes("video") ||
+    url?.endsWith(".mp4") ||
+    url?.endsWith(".mov") ||
+    url?.endsWith(".avi")
   );
 };
 

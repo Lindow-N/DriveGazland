@@ -7,7 +7,7 @@ import React, {
   useState,
   ReactNode,
 } from "react";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import { TagContextType } from "../interfaces/context";
 
@@ -26,28 +26,22 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
   const [totalTags, setTotalTags] = useState<number>(0); // État pour stocker le nombre total de tags
 
   useEffect(() => {
-    const fetchTags = async () => {
-      try {
-        const tagsQuery = query(collection(db, "tags"), orderBy("name", "asc"));
-        const querySnapshot = await getDocs(tagsQuery);
+    const tagsQuery = query(collection(db, "tags"), orderBy("name", "asc"));
 
-        const tagList = querySnapshot.docs.map((doc) => doc.id);
-        const tagsDataList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          data: doc.data(),
-        }));
+    const unsubscribe = onSnapshot(tagsQuery, (querySnapshot) => {
+      const tagList = querySnapshot.docs.map((doc) => doc.id);
+      const tagsDataList = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        data: doc.data(),
+      }));
 
-        setTags(tagList);
-        setTagsWithData(tagsDataList);
-        setTotalTags(querySnapshot.size); // Stocke le nombre total de documents/tags
-      } catch (error) {
-        console.error("Erreur lors de la récupération des tags :", error);
-      } finally {
-        setLoadingTags(false);
-      }
-    };
+      setTags(tagList);
+      setTagsWithData(tagsDataList);
+      setTotalTags(querySnapshot.size); // Met à jour le nombre total de tags
+      setLoadingTags(false);
+    });
 
-    fetchTags();
+    return () => unsubscribe(); // Cleanup l'écoute lorsque le composant est démonté
   }, []);
 
   return (

@@ -14,6 +14,7 @@ import { useUser } from "../../context/UserContext";
 import { updateUserFileCount } from "../../firebase/users/usersServices";
 import { useTags } from "../../context/TagContext";
 import { showSuccessToast, showErrorToast } from "../../utils/toastConfig";
+import Tag from "../../components/shared/Tag";
 
 const UploadMediaPage: React.FC = () => {
   const [files, setFiles] = useState<FilePreview[]>([]);
@@ -57,49 +58,15 @@ const UploadMediaPage: React.FC = () => {
     setIsDragActive(false);
   };
 
-  const handleUpload = async () => {
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    try {
-      for (let i = 0; i < files.length; i++) {
-        const currentFile = files[i];
-        const uploadTask = uploadFile(
-          currentFile.file,
-          currentFile.file.type.startsWith("image") ? "image" : "video",
-          currentFile.tags,
-          user,
-          (progress) => setUploadProgress(progress)
-        );
-        const downloadURL = await uploadTask;
-
-        for (const tag of currentFile.tags) {
-          await updateOrCreateTag(tag, downloadURL, user);
-        }
-
-        await updateUserFileCount(user?.id, downloadURL);
-        showSuccessToast();
-      }
-
-      setFiles([]);
-      setCurrentIndex(0);
-      setNewTag("");
-      setUploadProgress(100);
-    } catch (error) {
-      console.error("Erreur lors de l'upload :", error);
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value.toLowerCase();
     setNewTag(inputValue);
 
     if (inputValue.length > 0) {
       const filtered = tags.filter((tag) =>
-        tag.toLowerCase().includes(inputValue)
+        tag.toLowerCase().startsWith(inputValue)
       );
+
       setFilteredTags(filtered);
     } else {
       setFilteredTags([]);
@@ -112,9 +79,55 @@ const UploadMediaPage: React.FC = () => {
     onDragLeave: () => setIsDragActive(false),
   });
 
+  const handleUploadCurrentFile = async () => {
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const currentFile = files[currentIndex];
+
+      const uploadTask = uploadFile(
+        currentFile.file,
+        currentFile.file.type.startsWith("image") ? "image" : "video",
+        currentFile.tags,
+        user,
+        (progress) => setUploadProgress(progress)
+      );
+
+      const downloadURL = await uploadTask;
+
+      // Mise à jour des tags en base pour ce fichier
+      for (const tag of currentFile.tags) {
+        await updateOrCreateTag(tag, downloadURL, user);
+      }
+
+      // Mise à jour du nombre de fichiers uploadés par l'utilisateur
+      await updateUserFileCount(user?.id, downloadURL);
+
+      showSuccessToast();
+
+      // Passer à l'image suivante après l'upload
+      if (currentIndex + 1 < files.length) {
+        setCurrentIndex(currentIndex + 1);
+      } else {
+        // Si tous les fichiers ont été uploadés
+        setFiles([]);
+        setCurrentIndex(0);
+      }
+
+      setNewTag(""); // Réinitialiser le champ de tag
+      setUploadProgress(100); // Indiquer la fin du processus
+    } catch (error) {
+      console.error("Erreur lors de l'upload :", error);
+      showErrorToast("Erreur lors de l'upload");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <DashboardLayout>
-      <div className="bg-dark1 min-h-screen p-8 pb-16 lg:pb-8">
+      <div className="bg-dark1 min-h-screen p-8 pb-32 lg:pb-8 ">
         <h1 className="text-2xl font-bold text-white mb-6 font-title lg:ml-0 ml-6">
           Ajouter un Média
         </h1>
@@ -143,14 +156,14 @@ const UploadMediaPage: React.FC = () => {
                 <video
                   src={files[currentIndex].preview}
                   controls
-                  className="w-full h-auto object-contain rounded-md mb-4"
+                  className="w-full max-w-[500px] max-h-[400px] h-auto object-contain rounded-md mb-4"
                 />
               ) : (
                 <Zoom>
                   <img
                     src={files[currentIndex].preview}
                     alt="Image active"
-                    className="w-full h-auto object-contain rounded-md mb-4 cursor-pointer"
+                    className="w-full max-w-[500px] max-h-[400px] h-auto object-contain rounded-md mb-4 cursor-pointer"
                   />
                 </Zoom>
               )}
@@ -182,7 +195,7 @@ const UploadMediaPage: React.FC = () => {
                   </button>
 
                   {filteredTags.length > 0 && (
-                    <div className="absolute top-full mt-2 w-full bg-dark3 rounded-md shadow-lg max-h-40 overflow-y-auto z-10">
+                    <div className="absolute top-full mt-2 w-full bg-dark3 rounded-md shadow-lg max-h-28 overflow-y-auto z-10">
                       {filteredTags.map((tag) => (
                         <div
                           key={tag}
@@ -197,24 +210,17 @@ const UploadMediaPage: React.FC = () => {
                 </div>
 
                 <div className="flex flex-wrap mt-4">
-                  {files[currentIndex].tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="bg-gray-700 text-white px-2 py-1 rounded-lg mr-2 mb-2 font-body flex items-center"
-                    >
-                      {tag}{" "}
-                      <button
-                        onClick={() => handleRemoveTag(tag)}
-                        className="ml-2 text-redPrimary"
-                      >
-                        &times;
-                      </button>
-                    </span>
+                  {files[currentIndex].tags.map((tag, index) => (
+                    <Tag
+                      key={index}
+                      text={tag}
+                      onRemove={() => handleRemoveTag(tag)}
+                    />
                   ))}
                 </div>
                 <div className="mt-6">
                   <button
-                    onClick={handleUpload}
+                    onClick={handleUploadCurrentFile}
                     className={`bg-greenPrimary text-white px-4 py-2 rounded-md font-body w-full ${
                       files[currentIndex].tags.length === 0
                         ? "opacity-50 cursor-not-allowed"

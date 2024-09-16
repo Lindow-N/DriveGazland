@@ -14,28 +14,25 @@ const DashboardPage: React.FC = () => {
   const { tagsWithData, loadingTags } = useTags();
   const [selectedCategory, setSelectedCategory] =
     useState<string>("Tous les fichiers");
-  const [searchResults, setSearchResults] = useState<any[]>([]); // Garde en mémoire les résultats de recherche
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   const categories: string[] = ["Tous les fichiers", "Favoris"];
   console.log(tagsWithData, "tagsWithData");
 
-  // Reformater les fichiers de la recherche pour avoir la bonne structure
   const formattedSearchResults = searchResults.map((file) => ({
     id: file.id,
-    imageSrc: file.url, // Le champ `url` est utilisé pour les fichiers recherchés
-    title: file.name, // Le champ `name` est utilisé pour les fichiers recherchés
-    totalFiles: file.tags?.length || 1, // Nombre de tags ou valeur par défaut
+    imageSrc: file.url,
+    title: file.name,
+    totalFiles: file.tags?.length || 1,
   }));
 
-  // Reformater les tags pour avoir une structure homogène
   const formattedTags = tagsWithData.map((tag) => ({
     id: tag.id,
-    imageSrc: tag.data.lastAddedFileUrl, // Utilisation de l'image du tag
-    title: tag.data.name, // Utilisation du nom du tag
-    totalFiles: tag.data.totalFiles || 1, // Valeur par défaut pour totalFiles
+    imageSrc: tag.data.lastAddedFileUrl,
+    title: tag.data.name,
+    totalFiles: tag.data.totalFiles || 1,
   }));
 
-  // Si des résultats de recherche sont présents, afficher ces fichiers, sinon afficher les tags par défaut
   const filesToDisplay =
     searchResults.length > 0 ? formattedSearchResults : formattedTags;
 
@@ -45,10 +42,9 @@ const DashboardPage: React.FC = () => {
     <DashboardLayout>
       <DashboardHeader
         greetingText={`Bienvenue, ${user?.pseudonym} !`}
-        onSearchResults={setSearchResults} // Prop pour remonter les résultats de la recherche
+        onSearchResults={setSearchResults}
       />
 
-      {/* Cacher la liste des catégories quand une recherche est active */}
       {searchResults.length === 0 && (
         <CategoryList
           categories={categories}
@@ -61,7 +57,10 @@ const DashboardPage: React.FC = () => {
         {loadingTags ? (
           <p>Chargement des tags...</p>
         ) : (
-          <FileGrid files={filesToDisplay} /> // Affichage des fichiers recherchés ou des tags par défaut
+          <FileGrid
+            files={filesToDisplay}
+            isTagView={searchResults.length == 0}
+          />
         )}
       </div>
     </DashboardLayout>

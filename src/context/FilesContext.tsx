@@ -13,7 +13,7 @@ import { db } from "../firebase/firebaseConfig";
 interface FilesContextType {
   totalFiles: number;
   loadingFiles: boolean;
-  searchFilesByTags: (tags: string[]) => Promise<any[]>; // Nouvelle fonction
+  searchFilesByTags: (tags: string[]) => Promise<any[]>;
 }
 
 const FilesContext = createContext<FilesContextType | undefined>(undefined);
@@ -60,7 +60,7 @@ export const FilesProvider: React.FC<FilesProviderProps> = ({ children }) => {
       const querySnapshot = await getDocs(filesQuery);
       const files = querySnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data(),
+        ...(doc.data() as { tags: string[] }),
       }));
 
       // Filtrer côté client pour garder uniquement les fichiers qui contiennent tous les tags

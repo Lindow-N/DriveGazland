@@ -3,7 +3,12 @@
 import React, { useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { File } from "../../interfaces/list";
-
+import {
+  ArrowDownTrayIcon,
+  HeartIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline"; // Import des icônes pour mobile
+import { useSwipeable } from "react-swipeable";
 interface MediaModalProps {
   files: File[];
   currentIndex: number;
@@ -28,19 +33,25 @@ const MediaModal: React.FC<MediaModalProps> = ({
     );
   };
 
-  const handleNext = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Empêche la propagation pour éviter de fermer la modale
+  const handleNext = () => {
     setCurrentFileIndex((prevIndex) =>
       prevIndex === files.length - 1 ? 0 : prevIndex + 1
     );
   };
 
-  const handlePrevious = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Empêche la propagation pour éviter de fermer la modale
+  const handlePrevious = () => {
     setCurrentFileIndex((prevIndex) =>
       prevIndex === 0 ? files.length - 1 : prevIndex - 1
     );
   };
+
+  // Gestion des événements de swipe
+  const handlers = useSwipeable({
+    onSwipedLeft: handleNext,
+    onSwipedRight: handlePrevious,
+    preventScrollOnSwipe: true, // Utilise cette option à la place de preventDefaultTouchmoveEvent
+    trackMouse: true, // Permet de swiper aussi avec la souris sur PC
+  });
 
   return (
     <div
@@ -50,6 +61,7 @@ const MediaModal: React.FC<MediaModalProps> = ({
       <div
         className="relative w-full max-w-3xl max-h-[85vh] bg-dark3 rounded-lg shadow-lg overflow-hidden"
         onClick={(e) => e.stopPropagation()} // Empêche la fermeture en cliquant sur la modal elle-même
+        {...handlers} // Applique les événements de swipe à la modal
       >
         {/* Header avec le nom de l'image */}
         <div className="bg-dark2 py-2 px-4 flex justify-between items-center">
@@ -75,35 +87,43 @@ const MediaModal: React.FC<MediaModalProps> = ({
               src={currentFile.imageSrc}
               alt={currentFile.title}
               className="max-w-full max-h-full object-contain"
-              style={{ maxHeight: "calc(70vh - 4rem)", maxWidth: "100%" }} // Limite la taille max en hauteur
+              style={{ maxHeight: "calc(70vh - 4rem)", maxWidth: "100%" }}
             />
           )}
         </div>
 
-        {/* Boutons de navigation */}
+        {/* Boutons de navigation (en plus du swipe) */}
         <button
           onClick={handlePrevious}
-          className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white text-3xl"
+          className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white text-5xl md:text-6xl lg:text-7xl p-2"
         >
           &#8249;
         </button>
         <button
           onClick={handleNext}
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white text-3xl"
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white text-5xl md:text-6xl lg:text-7xl p-2"
         >
           &#8250;
         </button>
 
         {/* Footer avec les boutons */}
-        <div className="bg-dark2 py-3 px-4 flex justify-around">
-          <button className="bg-greenPrimary text-white px-4 py-2 rounded-md">
-            Télécharger
+        <div className="bg-dark2 py-3 px-4 flex flex-col md:flex-row justify-around space-y-4 md:space-y-0 md:space-x-4">
+          {/* Bouton Télécharger */}
+          <button className="bg-greenPrimary text-white px-4 py-2 rounded-md flex items-center justify-center md:inline-block">
+            <ArrowDownTrayIcon className="w-5 h-5 md:hidden" />
+            <span className="hidden md:inline">Télécharger</span>
           </button>
-          <button className="bg-greenPrimary text-white px-4 py-2 rounded-md">
-            Favoris
+
+          {/* Bouton Favoris */}
+          <button className="bg-greenPrimary text-white px-4 py-2 rounded-md flex items-center justify-center md:inline-block">
+            <HeartIcon className="w-5 h-5 md:hidden" />
+            <span className="hidden md:inline">Favoris</span>
           </button>
-          <button className="bg-redPrimary text-white px-4 py-2 rounded-md">
-            Supprimer
+
+          {/* Bouton Supprimer */}
+          <button className="bg-redPrimary text-white px-4 py-2 rounded-md flex items-center justify-center md:inline-block">
+            <TrashIcon className="w-5 h-5 md:hidden" />
+            <span className="hidden md:inline">Supprimer</span>
           </button>
         </div>
       </div>

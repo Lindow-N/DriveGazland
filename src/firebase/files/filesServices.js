@@ -15,9 +15,13 @@ export const uploadFile = async (file, type, tags, user, onProgress) => {
     throw new Error("Le fichier est invalide ou manquant.");
   }
 
-  const filePath = `${type === "image" ? "images" : "videos"}/${
-    file.name
-  }_${Date.now()}`;
+  // Générer le nom du fichier à partir des tags
+  const tagsForName = tags.join("_").toLowerCase(); // Concaténer les tags avec des underscores
+  const extension = file.name.split(".").pop(); // Extraire l'extension du fichier
+
+  const filePath = `${
+    type === "image" ? "images" : "videos"
+  }/${tagsForName}_${Date.now()}.${extension}`;
   const storageRef = ref(storage, filePath);
 
   const uploadTask = uploadBytesResumable(storageRef, file);
@@ -40,7 +44,7 @@ export const uploadFile = async (file, type, tags, user, onProgress) => {
         const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
 
         const docRef = await addDoc(collection(firestore, "files"), {
-          name: file.name,
+          name: `${tagsForName}.${extension}`, // Utiliser les tags pour le nom en base
           url: downloadURL,
           type: type,
           tags: tags,

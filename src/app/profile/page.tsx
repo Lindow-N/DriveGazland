@@ -235,7 +235,7 @@ const ProfilePage: React.FC = () => {
         {!loading && user?.recentFiles?.length === 0 && (
           <div className="bg-dark2 p-4 rounded-lg shadow-md mb-6">
             <h2 className="text-2xl font-bold font-title">Fichiers récents</h2>
-            <p className="font-body">Les connard upload rien</p>
+            <p className="font-body">Les connards upload rien</p>
           </div>
         )}
 

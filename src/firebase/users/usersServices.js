@@ -1,7 +1,7 @@
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
-export const updateUserFileCount = async (userId, newFileUrl) => {
+export const updateUserFileCount = async (userId, storagePath) => {
   const userRef = doc(db, "users", userId);
   const userDoc = await getDoc(userRef);
 
@@ -11,7 +11,8 @@ export const updateUserFileCount = async (userId, newFileUrl) => {
 
     let recentFiles = userData.recentFiles || [];
 
-    recentFiles.unshift(newFileUrl);
+    // On enregistre le storagePath et non l'URL complète
+    recentFiles.unshift(storagePath);
 
     if (recentFiles.length > 3) {
       recentFiles = recentFiles.slice(0, 3);

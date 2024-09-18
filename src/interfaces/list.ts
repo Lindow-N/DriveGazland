@@ -6,7 +6,9 @@ export interface CategoryListProps {
 
 export interface File {
   id: string;
-  imageSrc: string;
+  storagePath: string;
   title: string;
   totalFiles: number;
+  name: string;
+  type: string;
 }

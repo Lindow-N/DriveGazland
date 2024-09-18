@@ -86,6 +86,7 @@ const UploadMediaPage: React.FC = () => {
     try {
       const currentFile = files[currentIndex];
 
+      // Upload du fichier
       const uploadTask = uploadFile(
         currentFile.file,
         currentFile.file.type.startsWith("image") ? "image" : "video",
@@ -94,15 +95,16 @@ const UploadMediaPage: React.FC = () => {
         (progress) => setUploadProgress(progress)
       );
 
-      const downloadURL = await uploadTask;
+      // On récupère uniquement le storagePath ici
+      const storagePath = await uploadTask;
 
-      // Mise à jour des tags en base pour ce fichier
+      // Mise à jour des tags en base pour ce fichier avec storagePath
       for (const tag of currentFile.tags) {
-        await updateOrCreateTag(tag, downloadURL, user);
+        await updateOrCreateTag(tag, storagePath, user); // Envoyer storagePath
       }
 
       // Mise à jour du nombre de fichiers uploadés par l'utilisateur
-      await updateUserFileCount(user?.id, downloadURL);
+      await updateUserFileCount(user?.id, storagePath);
 
       showSuccessToast();
 

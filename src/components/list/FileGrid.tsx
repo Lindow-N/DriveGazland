@@ -1,36 +1,36 @@
-"use client";
-
 import React, { useRef, useEffect, useState } from "react";
 import { File } from "../../interfaces/list";
 import MediaModal from "../shared/MediaModal";
+import { getDownloadUrlFromStoragePath } from "../../utils/helper";
 
 interface FileGridProps {
   files: File[];
   isTagView?: boolean; // Pour indiquer si on affiche les tags ou les fichiers
 }
 
-const isVideo = (url: string | undefined) => {
-  return (
-    url?.includes("video") ||
-    url?.endsWith(".mp4") ||
-    url?.endsWith(".mov") ||
-    url?.endsWith(".avi")
-  );
+// Utiliser le type pour déterminer si c'est une vidéo
+const isVideo = (storagePath: string) => {
+  return storagePath.startsWith("videos/");
 };
 
 const FileGrid: React.FC<FileGridProps> = ({ files, isTagView = false }) => {
-  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const [selectedFileIndex, setSelectedFileIndex] = useState<number | null>(
     null
   );
+  const [fileUrls, setFileUrls] = useState<(string | null)[]>([]);
 
   useEffect(() => {
-    videoRefs.current.forEach((video) => {
-      if (video) {
-        video.currentTime = 0;
-        video.pause();
-      }
-    });
+    const fetchUrls = async () => {
+      const urls = await Promise.all(
+        files.map(async (file) => {
+          const url = await getDownloadUrlFromStoragePath(file.storagePath);
+          return url;
+        })
+      );
+      setFileUrls(urls);
+    };
+
+    fetchUrls();
   }, [files]);
 
   const openModal = (index: number) => {
@@ -52,26 +52,28 @@ const FileGrid: React.FC<FileGridProps> = ({ files, isTagView = false }) => {
             className={`bg-dark2 rounded-lg shadow-md p-4 cursor-pointer transition duration-150 ease-in-out ${
               !isTagView ? "hover:bg-dark3" : ""
             }`}
-            onClick={() => openModal(index)} // Ouvre la modal uniquement en mode fichier
+            onClick={() => openModal(index)}
           >
-            {isVideo(file.imageSrc) ? (
+            {isVideo(file.storagePath) ? (
               <video
-                ref={(el) => {
-                  videoRefs.current[index] = el;
-                }}
                 className="w-full h-32 md:h-40 object-cover rounded-md mb-4"
-                src={file.imageSrc}
+                src={fileUrls[index] || ""}
+                onLoadedData={(e) => {
+                  const video = e.currentTarget;
+                  video.currentTime = 1; // Prendre une capture à 1 seconde dans la vidéo
+                  video.pause();
+                }}
                 muted
                 controls={false}
-                onLoadedData={(e) => (e.currentTarget.currentTime = 0)}
               />
             ) : (
               <img
-                src={file.imageSrc}
+                src={fileUrls[index] || ""}
                 alt={file.title}
                 className="w-full h-32 md:h-40 object-cover rounded-md mb-4"
               />
             )}
+
             <div className="flex items-center justify-between">
               <h3 className="text-white font-bold text-sm md:text-lg">
                 {file.title.length > 12

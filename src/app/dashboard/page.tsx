@@ -21,14 +21,14 @@ const DashboardPage: React.FC = () => {
 
   const formattedSearchResults = searchResults.map((file) => ({
     id: file.id,
-    imageSrc: file.url,
+    storagePath: file.storagePath,
     title: file.name,
     totalFiles: file.tags?.length || 1,
   }));
 
   const formattedTags = tagsWithData.map((tag) => ({
     id: tag.id,
-    imageSrc: tag.data.lastAddedFileUrl,
+    storagePath: tag.data.lastAddedFileStoragePath,
     title: tag.data.name,
     totalFiles: tag.data.totalFiles || 1,
   }));

@@ -7,7 +7,7 @@ export interface FilePreview {
 
 export interface Image {
   id: string;
-  url: string;
+  storagePath: string;
   title?: string;
   description?: string;
 }

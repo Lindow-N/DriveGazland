@@ -19,6 +19,7 @@ export const uploadFile = async (file, type, tags, user, onProgress) => {
   const tagsForName = tags.join("_").toLowerCase(); // Concaténer les tags avec des underscores
   const extension = file.name.split(".").pop(); // Extraire l'extension du fichier
 
+  // Ce que tu enregistres comme storagePath (DOIT être un chemin relatif)
   const filePath = `${
     type === "image" ? "images" : "videos"
   }/${tagsForName}_${Date.now()}.${extension}`;
@@ -38,22 +39,52 @@ export const uploadFile = async (file, type, tags, user, onProgress) => {
         }
       },
       (error) => {
-        reject(error);
+        reject(error); // Gestion des erreurs d'upload
       },
       async () => {
-        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        try {
+          // Enregistrer le fichier dans Firestore avec le storagePath
+          await addDoc(collection(firestore, "files"), {
+            name: `${tagsForName}.${extension}`, // Utiliser les tags pour le nom en base
+            storagePath: filePath, // Enregistre uniquement le chemin relatif
+            type: type,
+            tags: tags,
+            addBy: user.id,
+            createdAt: new Date(),
+          });
 
-        const docRef = await addDoc(collection(firestore, "files"), {
-          name: `${tagsForName}.${extension}`, // Utiliser les tags pour le nom en base
-          url: downloadURL,
-          type: type,
-          tags: tags,
-          addBy: user.id,
-          createdAt: new Date(),
-        });
+          console.log(
+            "Fichier ajouté avec succès dans Firestore avec storagePath."
+          );
 
-        resolve(downloadURL);
+          // Résoudre avec le chemin relatif du fichier (storagePath)
+          resolve(filePath);
+        } catch (error) {
+          console.error(
+            "Erreur lors de l'ajout du fichier à Firestore :",
+            error
+          );
+          reject(error); // Gestion des erreurs Firestore
+        }
       }
     );
   });
+};
+
+export const toggleFavorite = async (user, currentFile) => {
+  const userDocRef = doc(db, "users", user.id);
+
+  if (!user.favorites.includes(currentFile.storagePath)) {
+    // Ajouter l'image dans les favoris
+    await updateDoc(userDocRef, {
+      favorites: arrayUnion(currentFile.storagePath),
+    });
+    return true; // Favori ajouté
+  } else {
+    // Supprimer l'image des favoris
+    await updateDoc(userDocRef, {
+      favorites: arrayRemove(currentFile.storagePath),
+    });
+    return false; // Favori retiré
+  }
 };

@@ -5,13 +5,14 @@ import { XMarkIcon } from "@heroicons/react/24/solid";
 import { File } from "../../interfaces/list";
 import {
   ArrowDownTrayIcon,
+  ChevronLeftIcon,
   HeartIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { useSwipeable } from "react-swipeable";
 import { toggleFavorite } from "../../firebase/files/filesServices";
 import { useUser } from "../../context/UserContext";
-import { getDownloadURL, ref } from "firebase/storage";
+import { getDownloadURL, ref, getBlob } from "firebase/storage";
 import { storage } from "../../firebase/firebaseConfig";
 
 // Utiliser la fonction isVideo comme dans FileGrid
@@ -39,7 +40,7 @@ const MediaModal: React.FC<MediaModalProps> = ({
 
   useEffect(() => {
     const isFileFavorite = user?.favorites.some(
-      (favorite: { url: string }) => favorite.url === currentFile.storagePath
+      (favorite: { url: string }) => favorite?.url === currentFile?.storagePath
     );
     setIsFavorite(isFileFavorite ?? false);
 
@@ -86,30 +87,18 @@ const MediaModal: React.FC<MediaModalProps> = ({
     }
 
     try {
-      const downloadURL = await getDownloadURL(
-        ref(storage, currentFile.storagePath)
-      );
-      console.log("URL de téléchargement :", downloadURL);
+      // Récupérer le blob du fichier à partir de son storagePath
+      const fileRef = ref(storage, currentFile.storagePath);
+      const fileBlob = await getBlob(fileRef);
 
-      const response = await fetch(downloadURL, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/octet-stream",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `Erreur lors du téléchargement : ${response.status} ${response.statusText}`
-        );
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      // Créer un lien pour télécharger le blob
+      const url = window.URL.createObjectURL(fileBlob);
 
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", currentFile.name);
+
+      // Utiliser `currentFile.name` pour le nom du fichier
+      link.setAttribute("download", currentFile.name || "fichier-inconnu"); // Si le nom est undefined, donner un nom par défaut
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -125,6 +114,7 @@ const MediaModal: React.FC<MediaModalProps> = ({
     setIsFavorite(addedToFavorites);
   };
 
+  console.log("currentFile", currentFile);
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4"

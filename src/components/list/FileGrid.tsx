@@ -69,16 +69,16 @@ const FileGrid: React.FC<FileGridProps> = ({ files, isTagView = false }) => {
             ) : (
               <img
                 src={fileUrls[index] || ""}
-                alt={file.title}
+                alt={file.name}
                 className="w-full h-32 md:h-40 object-cover rounded-md mb-4"
               />
             )}
 
             <div className="flex items-center justify-between">
               <h3 className="text-white font-bold text-sm md:text-lg">
-                {file.title.length > 12
-                  ? `${file.title.slice(0, 12)}...`
-                  : file.title}
+                {file.name.length > 12
+                  ? `${file.name.slice(0, 12)}...`
+                  : file.name}
               </h3>
 
               <span className="bg-gray-700 text-xs text-white rounded-md px-2 py-1">

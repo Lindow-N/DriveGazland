@@ -3,9 +3,11 @@ import {
   ref,
   uploadBytesResumable,
   getDownloadURL,
+  getBlob,
 } from "firebase/storage";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 
 const storage = getStorage();
 const firestore = db;
@@ -72,19 +74,58 @@ export const uploadFile = async (file, type, tags, user, onProgress) => {
 };
 
 export const toggleFavorite = async (user, currentFile) => {
-  const userDocRef = doc(db, "users", user.id);
+  console.log(currentFile, "currentFile");
+  try {
+    const userDocRef = doc(db, "users", user.id);
 
-  if (!user.favorites.includes(currentFile.storagePath)) {
-    // Ajouter l'image dans les favoris
-    await updateDoc(userDocRef, {
-      favorites: arrayUnion(currentFile.storagePath),
-    });
-    return true; // Favori ajouté
-  } else {
-    // Supprimer l'image des favoris
-    await updateDoc(userDocRef, {
-      favorites: arrayRemove(currentFile.storagePath),
-    });
-    return false; // Favori retiré
+    // Si le fichier n'est pas encore dans les favoris, l'ajouter
+    if (
+      !user.favorites.some((fav) => fav.storagePath === currentFile.storagePath)
+    ) {
+      await updateDoc(userDocRef, {
+        favorites: arrayUnion({
+          id: currentFile.id,
+          storagePath: currentFile.storagePath,
+          name: currentFile.name,
+          type: currentFile.type,
+          addBy: currentFile.addBy,
+          tags: currentFile.tags,
+        }),
+      });
+      return true; // Fichier ajouté aux favoris
+    } else {
+      // Si le fichier est déjà dans les favoris, le retirer en entier
+      const favoriteToRemove = user.favorites.find(
+        (fav) => fav.storagePath === currentFile.storagePath
+      );
+
+      if (favoriteToRemove) {
+        await updateDoc(userDocRef, {
+          favorites: arrayRemove(favoriteToRemove), // Retirer l'objet complet
+        });
+      }
+      return false; // Fichier retiré des favoris
+    }
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour des favoris :", error);
+    return false;
+  }
+};
+
+// Fonction pour télécharger un fichier à partir du storagePath
+export const downloadFile = async (storagePath, fileName) => {
+  try {
+    const fileRef = ref(storage, storagePath);
+    const fileBlob = await getBlob(fileRef);
+    const url = window.URL.createObjectURL(fileBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", fileName || "fichier-inconnu");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Erreur lors du téléchargement :", error);
   }
 };

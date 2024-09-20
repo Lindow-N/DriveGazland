@@ -26,3 +26,25 @@ export const updateUserFileCount = async (userId, storagePath) => {
     throw new Error("Utilisateur non trouvé");
   }
 };
+
+// Fonction pour récupérer les informations de l'utilisateur qui a ajouté le fichier
+export const fetchAddedByUser = async (userId) => {
+  try {
+    if (!userId) {
+      return "Utilisateur inconnu";
+    }
+
+    const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      const userData = userSnap.data();
+      return userData.pseudonym || "Utilisateur inconnu";
+    } else {
+      return "Utilisateur inconnu";
+    }
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'utilisateur :", error);
+    return "Erreur utilisateur";
+  }
+};

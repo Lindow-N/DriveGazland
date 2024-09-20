@@ -1,10 +1,10 @@
 import React, { useRef, useEffect, useState } from "react";
-import { File } from "../../interfaces/list";
+import { AppFile } from "../../interfaces/list";
 import MediaModal from "../shared/MediaModal";
 import { getDownloadUrlFromStoragePath } from "../../utils/helper";
 
 interface FileGridProps {
-  files: File[];
+  files: AppFile[];
   isTagView?: boolean; // Pour indiquer si on affiche les tags ou les fichiers
 }
 

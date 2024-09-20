@@ -33,11 +33,3 @@ export const getDownloadUrlFromStoragePath = async (storagePath) => {
     return null;
   }
 };
-
-// Exemple d'utilisation pour les fichiers récents
-export const fetchRecentFilesUrls = async (recentFiles) => {
-  const fileUrls = await Promise.all(
-    recentFiles.map((storagePath) => getDownloadUrlFromStoragePath(storagePath))
-  );
-  return fileUrls;
-};

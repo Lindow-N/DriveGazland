@@ -7,12 +7,16 @@ import DashboardLayout from "../../layouts/DashboardLayout";
 import withAuth from "../../utils/withAuth";
 import { useUser } from "../../context/UserContext";
 import { Timestamp } from "firebase/firestore";
+import { getDownloadUrlFromStoragePath } from "../../utils/helper";
 
 const ProfilePage: React.FC = () => {
   // État pour les tags et les succès
   const { user, loading } = useUser();
 
   const [showTags, setShowTags] = useState(false);
+  const [recentFilesWithUrls, setRecentFilesWithUrls] = useState<
+    { storagePath: string; url: string | null }[]
+  >([]);
 
   const formatDate = (creationDate: Timestamp | Date) => {
     // Si c'est un Timestamp, on le convertit en Date
@@ -34,18 +38,28 @@ const ProfilePage: React.FC = () => {
       return "Date non disponible"; // Cas où la date n'est pas définie
     }
   };
-  // Liste des fichiers récents (exemple)
-  const recentFiles = [
-    { id: 1, src: "/images/sample.jpg", alt: "Image 1" },
-    { id: 2, src: "/images/sample.jpg", alt: "Image 2" },
-    { id: 3, src: "/images/sample.jpg", alt: "Image 3" },
-  ];
 
   useEffect(() => {
     if (!loading) {
       console.log("Données utilisateur:", user);
     }
   }, [user, loading]);
+
+  useEffect(() => {
+    const fetchRecentFilesUrls = async () => {
+      if (user?.recentFiles && user.recentFiles.length > 0) {
+        const filesWithUrls = await Promise.all(
+          user.recentFiles.map(async (file) => {
+            const downloadUrl = await getDownloadUrlFromStoragePath(file);
+            return { storagePath: file, url: downloadUrl };
+          })
+        );
+        setRecentFilesWithUrls(filesWithUrls);
+      }
+    };
+
+    fetchRecentFilesUrls();
+  }, [user]);
 
   // Liste des succès (exemple)
   const achievements = [
@@ -163,20 +177,21 @@ const ProfilePage: React.FC = () => {
         </div>
 
         {/* Fichiers récents */}
-        {!loading && user?.recentFiles && user.recentFiles.length > 0 && (
+        {!loading && recentFilesWithUrls.length > 0 && (
           <div className="bg-dark2 p-4 rounded-lg shadow-md mb-6">
             <h2 className="text-2xl font-bold font-title">
               Fichiers récemment ajoutés
             </h2>
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {user.recentFiles.map((file, index) => (
+              {recentFilesWithUrls.map((file, index) => (
                 <div
-                  key={index} // Utilise l'index comme clé puisque ce sont des URL
+                  key={index}
                   className="bg-dark3 p-2 rounded-md shadow-md hover:shadow-lg transition-shadow duration-300"
                 >
-                  {file.includes("video") || file.includes("mp4") ? ( // Si le nom contient "video" ou "mp4"
+                  {file.storagePath.includes("video") ||
+                  file.storagePath.includes("mp4") ? (
                     <video
-                      src={file}
+                      src={file.url ?? ""} // Utiliser l'URL récupérée
                       controls
                       className="w-full h-auto object-contain rounded-md"
                     />
@@ -184,7 +199,7 @@ const ProfilePage: React.FC = () => {
                     <Zoom>
                       <div className="relative pb-[80%] bg-dark3 rounded-md overflow-hidden">
                         <img
-                          src={file}
+                          src={file.url ?? ""} // Utiliser l'URL récupérée
                           alt={`Fichier récent ${index + 1}`}
                           className="absolute top-0 left-0 w-full h-full object-cover rounded-md cursor-pointer"
                         />

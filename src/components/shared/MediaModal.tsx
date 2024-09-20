@@ -2,29 +2,26 @@
 
 import React, { useState, useEffect } from "react";
 import { XMarkIcon } from "@heroicons/react/24/solid";
-import { File } from "../../interfaces/list";
 import {
   ArrowDownTrayIcon,
-  ChevronLeftIcon,
   HeartIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { useSwipeable } from "react-swipeable";
 import { toggleFavorite } from "../../firebase/files/filesServices";
 import { useUser } from "../../context/UserContext";
-import { getDownloadURL, ref, getBlob } from "firebase/storage";
-import { storage } from "../../firebase/firebaseConfig";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { db } from "../../firebase/firebaseConfig";
+import { getDownloadUrlFromStoragePath } from "../../utils/helper";
+import { fetchAddedByUser } from "../../firebase/users/usersServices";
+import { downloadFile } from "../../firebase/files/filesServices";
+import { MediaModalProps } from "../../interfaces/media";
+import { json } from "stream/consumers";
 
 // Utiliser la fonction isVideo comme dans FileGrid
 const isVideo = (storagePath: string) => {
   return storagePath.startsWith("videos/");
 };
-
-interface MediaModalProps {
-  files: File[];
-  currentIndex: number;
-  onClose: () => void;
-}
 
 const MediaModal: React.FC<MediaModalProps> = ({
   files,
@@ -34,22 +31,27 @@ const MediaModal: React.FC<MediaModalProps> = ({
   const { user } = useUser();
   const [currentFileIndex, setCurrentFileIndex] = useState(currentIndex);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [imageUrl, setImageUrl] = useState(""); // Utiliser pour l'affichage
+  const [imageUrl, setImageUrl] = useState("");
+  const [addedByUser, setAddedByUser] = useState<string | null>(null);
 
   const currentFile = files[currentFileIndex];
 
   useEffect(() => {
     const isFileFavorite = user?.favorites.some(
-      (favorite: { url: string }) => favorite?.url === currentFile?.storagePath
+      (favorite: { storagePath: string }) =>
+        favorite?.storagePath === currentFile?.storagePath
     );
     setIsFavorite(isFileFavorite ?? false);
 
+    // Récupérer l'URL de l'image/vidéo
     const fetchImageUrl = async () => {
       try {
-        const downloadURL = await getDownloadURL(
-          ref(storage, currentFile.storagePath)
+        const downloadURL = await getDownloadUrlFromStoragePath(
+          currentFile.storagePath
         );
-        setImageUrl(downloadURL); // Définit l'URL de l'image/vidéo
+        if (downloadURL) {
+          setImageUrl(downloadURL);
+        }
       } catch (error) {
         console.error(
           "Erreur lors de la récupération de l'URL de l'image :",
@@ -59,7 +61,35 @@ const MediaModal: React.FC<MediaModalProps> = ({
     };
 
     fetchImageUrl();
+    fetchAddedByUser();
+    fetchUserData();
   }, [currentFile, user]);
+
+  useEffect(() => {
+    if (user && currentFile) {
+      const userDocRef = doc(db, "users", user.id);
+
+      const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const userData = docSnapshot.data();
+          const isFileFavorite = userData?.favorites?.some(
+            (favorite: { storagePath: string }) =>
+              favorite?.storagePath === currentFile?.storagePath
+          );
+          setIsFavorite(isFileFavorite ?? false);
+        }
+      });
+
+      // Nettoyage pour éviter les fuites de mémoire
+      return () => unsubscribe();
+    }
+  }, [user, currentFile]);
+
+  // Récupérer les informations de l'utilisateur qui a ajouté l'image/vidéo
+  const fetchUserData = async () => {
+    const userName = await fetchAddedByUser(currentFile?.addBy);
+    setAddedByUser(userName);
+  };
 
   const handleNext = () => {
     setCurrentFileIndex((prevIndex) =>
@@ -87,23 +117,7 @@ const MediaModal: React.FC<MediaModalProps> = ({
     }
 
     try {
-      // Récupérer le blob du fichier à partir de son storagePath
-      const fileRef = ref(storage, currentFile.storagePath);
-      const fileBlob = await getBlob(fileRef);
-
-      // Créer un lien pour télécharger le blob
-      const url = window.URL.createObjectURL(fileBlob);
-
-      const link = document.createElement("a");
-      link.href = url;
-
-      // Utiliser `currentFile.name` pour le nom du fichier
-      link.setAttribute("download", currentFile.name || "fichier-inconnu"); // Si le nom est undefined, donner un nom par défaut
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-
-      window.URL.revokeObjectURL(url);
+      await downloadFile(currentFile.storagePath, currentFile.name);
     } catch (error) {
       console.error("Erreur lors du téléchargement :", error);
     }
@@ -112,9 +126,47 @@ const MediaModal: React.FC<MediaModalProps> = ({
   const handleToggleFavorite = async () => {
     const addedToFavorites = await toggleFavorite(user, currentFile);
     setIsFavorite(addedToFavorites);
+
+    if (!addedToFavorites) {
+      // Si le fichier est retiré des favoris, passer à l'image suivante ou fermer la modal
+      if (files.length > 1) {
+        handleNext(); // Passer à l'image suivante
+      } else {
+        onClose(); // Fermer la modal s'il n'y a plus de fichiers
+      }
+    }
   };
 
-  console.log("currentFile", currentFile);
+  const handleDelete = async () => {
+    try {
+      const response = await fetch("/api/deleteFile", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fileId: currentFile.id,
+          storagePath: currentFile.storagePath,
+          tags: currentFile.tags,
+          userId: user?.id,
+        }),
+      });
+      console.log(
+        "body",
+        JSON.stringify({
+          fileId: currentFile.id,
+          storagePath: currentFile.storagePath,
+          tags: currentFile.tags,
+          userId: user?.id,
+        })
+      );
+      const data = await response.json();
+      console.log("Fichier supprimé :", data);
+    } catch (error) {
+      console.error("Erreur lors de la suppression du fichier :", error);
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4"
@@ -125,19 +177,25 @@ const MediaModal: React.FC<MediaModalProps> = ({
         onClick={(e) => e.stopPropagation()}
         {...handlers}
       >
-        {/* Header avec le nom de l'image */}
-        <div className="bg-dark2 py-2 px-4 flex justify-between items-center">
-          <span className="text-white text-lg truncate w-full">
-            {currentFile.name}
+        {/* Header avec le nom de l'image et ajouté par */}
+        <div className="bg-dark2 py-2 px-4 flex flex-col">
+          <span className="text-white text-lg truncate">
+            {currentFile?.name}
           </span>
-          <button onClick={onClose} className="text-white">
+          <span className="text-gray-400 text-sm">
+            Ajouté par : {addedByUser}
+          </span>
+          <button
+            onClick={onClose}
+            className="absolute top-2 right-2 text-white"
+          >
             <XMarkIcon className="w-6 h-6" />
           </button>
         </div>
 
         {/* Contenu du média */}
         <div className="flex items-center justify-center w-full h-full max-h-[70vh] p-4 overflow-hidden">
-          {isVideo(currentFile.storagePath) ? (
+          {isVideo(currentFile?.storagePath) ? (
             <video
               src={imageUrl}
               className="max-w-full max-h-full object-contain"
@@ -184,14 +242,24 @@ const MediaModal: React.FC<MediaModalProps> = ({
             className="bg-greenPrimary text-white px-4 py-2 rounded-md flex items-center justify-center md:inline-block"
             onClick={handleToggleFavorite}
           >
-            <HeartIcon className="w-5 h-5 md:hidden" />
+            {/* Sur mobile, change l'icône selon l'état isFavorite */}
+            {isFavorite ? (
+              <HeartIcon className="w-5 h-5 fill-current text-red-500 md:hidden" />
+            ) : (
+              <HeartIcon className="w-5 h-5 md:hidden" />
+            )}
+
+            {/* Afficher le texte sur les écrans plus grands */}
             <span className="hidden md:inline">
               {isFavorite ? "Retirer des Favoris" : "Ajouter aux Favoris"}
             </span>
           </button>
 
           {/* Bouton Supprimer */}
-          <button className="bg-redPrimary text-white px-4 py-2 rounded-md flex items-center justify-center md:inline-block">
+          <button
+            className="bg-redPrimary text-white px-4 py-2 rounded-md flex items-center justify-center md:inline-block"
+            onClick={handleDelete}
+          >
             <TrashIcon className="w-5 h-5 md:hidden" />
             <span className="hidden md:inline">Supprimer</span>
           </button>

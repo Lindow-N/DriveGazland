@@ -7,7 +7,11 @@ import withAuth from "../../utils/withAuth";
 import { useUser } from "../../context/UserContext";
 
 const RankingPage: React.FC = () => {
-  const categories = ["Nombre d'uploads", "Nombre de tags créés"];
+  const categories = [
+    "Nombre d'uploads",
+    "Nombre de tags créés",
+    "Nombre de succès débloqués",
+  ];
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
 
   const { allUsers } = useUser();
@@ -18,6 +22,12 @@ const RankingPage: React.FC = () => {
       return (b.totalFileUploads || 0) - (a.totalFileUploads || 0);
     } else if (selectedCategory === "Nombre de tags créés") {
       return (b.createdTags?.length || 0) - (a.createdTags?.length || 0);
+    } else if (selectedCategory === "Nombre de succès débloqués") {
+      // Compte le nombre de succès débloqués dans le tableau `achievements`
+      return (
+        (Number(b.achievements?.length) || 0) -
+        (Number(a.achievements?.length) || 0)
+      );
     }
     return 0;
   });
@@ -48,9 +58,14 @@ const RankingPage: React.FC = () => {
                   <h3 className="font-bold text-white">{user.pseudonym}</h3>
                 </div>
                 <span className="text-greenPrimary font-bold">
-                  {selectedCategory === "Nombre d'uploads"
-                    ? user.totalFileUploads
-                    : user?.createdTags?.length || 0}
+                  {
+                    selectedCategory === "Nombre d'uploads"
+                      ? user.totalFileUploads
+                      : selectedCategory === "Nombre de tags créés"
+                      ? user?.createdTags?.length || 0
+                      : user?.achievements?.length ||
+                        0 /* Pour afficher le nombre de succès */
+                  }
                 </span>
               </div>
             ))}

@@ -5,6 +5,10 @@ export interface TagContextType {
   tagsWithData: { id: string; data: any }[];
   loadingTags: boolean;
   totalTags: number;
+  linkedTags: { group: string; tags: string[]; id: string }[];
+  setLinkedTags: React.Dispatch<
+    React.SetStateAction<{ group: string; tags: string[]; id: string }[]>
+  >;
 }
 
 export interface UserContextType {

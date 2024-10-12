@@ -15,6 +15,7 @@ import { updateUserFileCount } from "../../firebase/users/usersServices";
 import { useTags } from "../../context/TagContext";
 import { showSuccessToast, showErrorToast } from "../../utils/toastConfig";
 import Tag from "../../components/shared/Tag";
+import PopularTagsList from "../../components/list/PopularTagsList";
 
 const UploadMediaPage: React.FC = () => {
   const [files, setFiles] = useState<FilePreview[]>([]);
@@ -25,7 +26,7 @@ const UploadMediaPage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const { user } = useUser();
-  const { tags } = useTags();
+  const { tags, tagsWithData } = useTags();
 
   const handleAddTag = (tagToAdd: string) => {
     if (tagToAdd.trim() === "") return;
@@ -127,25 +128,41 @@ const UploadMediaPage: React.FC = () => {
     }
   };
 
+  // Fonction pour supprimer un fichier
+  const handleRemoveFile = (index: number) => {
+    const updatedFiles = [...files];
+    updatedFiles.splice(index, 1); // Retirer le fichier à l'index donné
+
+    setFiles(updatedFiles);
+
+    // Si on supprime le fichier courant, on ajuste l'indice
+    if (index >= updatedFiles.length) {
+      setCurrentIndex(updatedFiles.length - 1);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="bg-dark1 min-h-screen p-8 pb-32 lg:pb-8 ">
         <h1 className="text-2xl font-bold text-white mb-6 font-title lg:ml-0 ml-6">
           Ajouter un Média
         </h1>
-        <div
-          {...getRootProps()}
-          className={`border-2 border-dashed p-8 rounded-md flex justify-center items-center cursor-pointer transition-colors duration-200 ${
-            isDragActive
-              ? "border-greenPrimary bg-dark3"
-              : "border-gray-500 bg-dark2"
-          }`}
-        >
-          <input {...getInputProps()} />
-          <p className="text-gray-400 font-body">
-            Glissez et déposez des fichiers ici, ou cliquez pour sélectionner
-          </p>
-        </div>
+        {/* Masquer la dropzone si un upload est en cours */}
+        {files.length === 0 && (
+          <div
+            {...getRootProps()}
+            className={`border-2 border-dashed p-8 rounded-md flex justify-center items-center cursor-pointer transition-colors duration-200 ${
+              isDragActive
+                ? "border-greenPrimary bg-dark3"
+                : "border-gray-500 bg-dark2"
+            }`}
+          >
+            <input {...getInputProps()} />
+            <p className="text-gray-400 font-body">
+              Glissez et déposez des fichiers ici, ou cliquez pour sélectionner
+            </p>
+          </div>
+        )}
 
         {files.length > 0 && (
           <div className="mt-6 max-w-lg mx-auto">
@@ -153,24 +170,40 @@ const UploadMediaPage: React.FC = () => {
               {currentIndex + 1} sur {files.length}
             </div>
 
-            <div className="bg-dark2 p-4 rounded-lg shadow-md w-full">
-              {files[currentIndex].file.type.startsWith("video") ? (
+            <div className="relative bg-dark2 p-4 rounded-lg shadow-md w-full">
+              {files[currentIndex]?.file?.type.startsWith("video") ? (
                 <video
                   src={files[currentIndex].preview}
                   controls
                   className="w-full max-w-[500px] max-h-[400px] h-auto object-contain rounded-md mb-4"
+                  onError={() =>
+                    console.log(
+                      "Erreur de lecture de la vidéo",
+                      files[currentIndex].file
+                    )
+                  }
                 />
               ) : (
                 <Zoom>
                   <img
-                    src={files[currentIndex].preview}
+                    src={files[currentIndex]?.preview}
                     alt="Image active"
                     className="w-full max-w-[500px] max-h-[400px] h-auto object-contain rounded-md mb-4 cursor-pointer"
                   />
                 </Zoom>
               )}
+
+              {/* Bouton de suppression avec fond sombre, centré et croix plus grande */}
+              <button
+                className="absolute top-2 right-2 bg-black bg-opacity-50 text-white w-10 h-10 flex items-center justify-center hover:bg-opacity-70"
+                style={{ fontSize: "28px", lineHeight: "28px" }} // Agrandir la croix et la centrer
+                onClick={() => handleRemoveFile(currentIndex)}
+              >
+                &times;
+              </button>
+
               <div className="text-white font-bold font-subtitle mb-2 text-center">
-                {files[currentIndex].tags.join(" ")}
+                {files[currentIndex]?.tags.join(" ")}
               </div>
             </div>
 
@@ -212,7 +245,7 @@ const UploadMediaPage: React.FC = () => {
                 </div>
 
                 <div className="flex flex-wrap mt-4">
-                  {files[currentIndex].tags.map((tag, index) => (
+                  {files[currentIndex]?.tags?.map((tag, index) => (
                     <Tag
                       key={index}
                       text={tag}
@@ -224,11 +257,11 @@ const UploadMediaPage: React.FC = () => {
                   <button
                     onClick={handleUploadCurrentFile}
                     className={`bg-greenPrimary text-white px-4 py-2 rounded-md font-body w-full ${
-                      files[currentIndex].tags.length === 0
+                      files[currentIndex]?.tags?.length === 0
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:bg-green-600"
                     }`}
-                    disabled={files[currentIndex].tags.length === 0}
+                    disabled={files[currentIndex]?.tags?.length === 0}
                   >
                     Upload Fichier
                   </button>
@@ -248,6 +281,12 @@ const UploadMediaPage: React.FC = () => {
               </div>
             )}
           </div>
+        )}
+        {files.length > 0 && (
+          <PopularTagsList
+            tagsWithData={tagsWithData}
+            onTagClick={handleAddTag}
+          />
         )}
       </div>
     </DashboardLayout>

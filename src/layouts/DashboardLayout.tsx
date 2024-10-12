@@ -11,6 +11,7 @@ import {
   TrophyIcon,
   UserCircleIcon,
   Bars3Icon,
+  LinkIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import { auth } from "../firebase/firebaseConfig";
@@ -120,6 +121,17 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 >
                   <TrophyIcon className="w-6 h-6 text-gray-400 group-hover:text-white" />
                   <span className="ml-3">Classement</span>
+                </a>
+              </li>
+
+              <li>
+                <a
+                  href="/linked"
+                  className="flex items-center p-2 text-gray-100 rounded-lg dark:text-white hover:bg-gray-700 hover:text-white transition duration-150 ease-in-out"
+                  onClick={handleCloseSidebar}
+                >
+                  <LinkIcon className="w-6 h-6 text-gray-400 group-hover:text-white" />
+                  <span className="ml-3">Tags liés</span>
                 </a>
               </li>
 

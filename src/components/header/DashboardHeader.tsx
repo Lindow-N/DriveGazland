@@ -12,19 +12,22 @@ import Tag from "../../components/shared/Tag";
 
 interface HeaderProps {
   greetingText: string;
-  onSearchResults: (files: any[]) => void; // Prop pour remonter les résultats de la recherche
+  onSearchResults: (files: any[]) => void;
+  selectedTags: string[]; // Tableau de chaînes de caractères
+  setSelectedTags: React.Dispatch<React.SetStateAction<string[]>>; // Setter pour les tags sélectionnés
 }
 
 const DashboardHeader: React.FC<HeaderProps> = ({
   greetingText,
   onSearchResults,
+  selectedTags, // Tags sélectionnés
+  setSelectedTags, // Setter des tags sélectionnés
 }) => {
   const router = useRouter();
   const { tags } = useTags();
   const { searchFilesByTags } = useFiles();
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredTags, setFilteredTags] = useState<string[]>([]);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   useEffect(() => {
     if (searchTerm.length > 0) {
@@ -39,15 +42,15 @@ const DashboardHeader: React.FC<HeaderProps> = ({
 
   const handleAddTag = (tag: string) => {
     if (!selectedTags.includes(tag)) {
-      setSelectedTags((prevTags) => [...prevTags, tag]);
+      setSelectedTags((prevTags: string[]) => [...prevTags, tag]); // Assure-toi que prevTags est bien typé en string[]
     }
-    setSearchTerm("");
-    setFilteredTags([]);
+    setSearchTerm(""); // Efface la barre de recherche après ajout
+    setFilteredTags([]); // Efface les suggestions
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setSelectedTags((prevTags) =>
-      prevTags.filter((tag) => tag !== tagToRemove)
+    setSelectedTags(
+      (prevTags: string[]) => prevTags.filter((tag) => tag !== tagToRemove) // Filtre les tags correctement
     );
   };
 
@@ -56,13 +59,21 @@ const DashboardHeader: React.FC<HeaderProps> = ({
   };
 
   useEffect(() => {
+    let unsubscribe = () => {}; // Fonction d'annulation par défaut
+
     if (selectedTags.length > 0) {
-      searchFilesByTags(selectedTags).then((files) => {
-        onSearchResults(files); // Remonte les résultats au DashboardPage
+      // Passer `onSearchResults` comme callback pour `onUpdate`
+      unsubscribe = searchFilesByTags(selectedTags, (files) => {
+        onSearchResults(files);
       });
     } else {
       onSearchResults([]); // Réinitialiser les résultats quand aucun tag n'est sélectionné
     }
+
+    // Nettoyage lors du démontage du composant ou des changements dans les tags
+    return () => {
+      unsubscribe();
+    };
   }, [selectedTags, searchFilesByTags, onSearchResults]);
 
   return (
@@ -88,7 +99,7 @@ const DashboardHeader: React.FC<HeaderProps> = ({
                   <div
                     key={tag}
                     className="p-2 hover:bg-dark2 cursor-pointer text-white"
-                    onClick={() => handleAddTag(tag)}
+                    onClick={() => handleAddTag(tag)} // Ajouter le tag à la recherche
                   >
                     {tag}
                   </div>

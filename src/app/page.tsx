@@ -3,8 +3,12 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import AuthForm from "../components/form/AuthForm";
-import { loginUser } from "../firebase/auth/authService";
-import { showMockToast, showErrorToast } from "../utils/toastConfig";
+import { loginUser, isUserValidated } from "../firebase/auth/authService"; // Import depuis le fichier service
+import {
+  showMockToast,
+  showErrorToast,
+  showSuccessToast,
+} from "../utils/toastConfig";
 import { firebaseErrors } from "../utils/firebaseErrors";
 import AuthLayout from "../layouts/AuthLayout";
 
@@ -30,7 +34,18 @@ export default function LoginPage() {
     }
 
     try {
-      await loginUser(email, password);
+      // Connexion de l'utilisateur via le service
+      const user = await loginUser(email, password);
+
+      // Vérification de l'état de validation via le service
+      const isValidated = await isUserValidated(user.uid);
+
+      if (isValidated) {
+        router.push("/dashboard"); // Redirection vers le dashboard si validé
+      } else {
+        showErrorToast("Votre compte n'est pas encore validé.");
+        router.push("/account-validation"); // Redirection vers la page de validation
+      }
     } catch (error) {
       const errorMessage = firebaseErrors(error.code);
       showErrorToast(errorMessage);

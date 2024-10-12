@@ -10,17 +10,19 @@ import {
 import { useSwipeable } from "react-swipeable";
 import { toggleFavorite } from "../../firebase/files/filesServices";
 import { useUser } from "../../context/UserContext";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
 import { getDownloadUrlFromStoragePath } from "../../utils/helper";
 import { fetchAddedByUser } from "../../firebase/users/usersServices";
-import { downloadFile } from "../../firebase/files/filesServices";
+import { downloadFile, deleteFile } from "../../firebase/files/filesServices";
 import { MediaModalProps } from "../../interfaces/media";
-import { json } from "stream/consumers";
+import { showSuccessToast } from "../../utils/toastConfig";
+import { unlockAchievement } from "../../firebase/users/successService";
+import Zoom from "react-medium-image-zoom";
 
 // Utiliser la fonction isVideo comme dans FileGrid
-const isVideo = (storagePath: string) => {
-  return storagePath.startsWith("videos/");
+const isVideo = (storagePath: string | undefined) => {
+  return storagePath ? storagePath.startsWith("videos/") : false;
 };
 
 const MediaModal: React.FC<MediaModalProps> = ({
@@ -47,7 +49,7 @@ const MediaModal: React.FC<MediaModalProps> = ({
     const fetchImageUrl = async () => {
       try {
         const downloadURL = await getDownloadUrlFromStoragePath(
-          currentFile.storagePath
+          currentFile?.storagePath
         );
         if (downloadURL) {
           setImageUrl(downloadURL);
@@ -117,7 +119,15 @@ const MediaModal: React.FC<MediaModalProps> = ({
     }
 
     try {
-      await downloadFile(currentFile.storagePath, currentFile.name);
+      await downloadFile(currentFile?.storagePath, currentFile?.name);
+
+      // Vérifie si 'achievements' est bien un tableau et si le numéro 5 est présent
+      const hasAchievement5 =
+        Array.isArray(user.achievements) && user.achievements.includes(5);
+
+      if (user && !hasAchievement5) {
+        await unlockAchievement(user.id, 5);
+      }
     } catch (error) {
       console.error("Erreur lors du téléchargement :", error);
     }
@@ -138,30 +148,31 @@ const MediaModal: React.FC<MediaModalProps> = ({
   };
 
   const handleDelete = async () => {
+    if (!currentFile || !user) {
+      console.error("Le fichier ou l'utilisateur est manquant.");
+      return;
+    }
+
     try {
-      const response = await fetch("/api/deleteFile", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fileId: currentFile.id,
-          storagePath: currentFile.storagePath,
-          tags: currentFile.tags,
-          userId: user?.id,
-        }),
-      });
-      console.log(
-        "body",
-        JSON.stringify({
-          fileId: currentFile.id,
-          storagePath: currentFile.storagePath,
-          tags: currentFile.tags,
-          userId: user?.id,
-        })
+      const result = await deleteFile(
+        currentFile.id,
+        currentFile.storagePath,
+        currentFile.tags,
+        user.id
       );
-      const data = await response.json();
-      console.log("Fichier supprimé :", data);
+
+      if (result.success) {
+        showSuccessToast("Dégage grosse pute !");
+
+        // Si plusieurs fichiers, on passe à l'image suivante ou on ferme la modal
+        if (files.length > 1) {
+          handleNext();
+        } else {
+          onClose();
+        }
+      } else {
+        console.error(result.message);
+      }
     } catch (error) {
       console.error("Erreur lors de la suppression du fichier :", error);
     }
@@ -173,7 +184,7 @@ const MediaModal: React.FC<MediaModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-3xl max-h-[85vh] bg-dark3 rounded-lg shadow-lg overflow-hidden"
+        className="relative w-full max-w-5xl md:max-h-screen bg-dark3 rounded-lg shadow-lg overflow-auto max-h-[80vh] md:max-h-full md:max-w-[90%] mx-auto"
         onClick={(e) => e.stopPropagation()}
         {...handlers}
       >
@@ -187,27 +198,26 @@ const MediaModal: React.FC<MediaModalProps> = ({
           </span>
           <button
             onClick={onClose}
-            className="absolute top-2 right-2 text-white"
+            className="absolute top-2 right-2 text-white md:text-lg text-base"
           >
-            <XMarkIcon className="w-6 h-6" />
+            <XMarkIcon className="w-5 h-5 md:w-6 md:h-6" />
           </button>
         </div>
 
         {/* Contenu du média */}
-        <div className="flex items-center justify-center w-full h-full max-h-[70vh] p-4 overflow-hidden">
+        <div className="flex items-center justify-center w-full h-full p-4 overflow-hidden">
           {isVideo(currentFile?.storagePath) ? (
             <video
               src={imageUrl}
-              className="max-w-full max-h-full object-contain"
+              className="max-w-full max-h-[50vh] md:max-h-[70vh] object-contain"
               controls
               autoPlay
             />
           ) : (
             <img
               src={imageUrl}
-              alt={currentFile.name}
-              className="max-w-full max-h-full object-contain"
-              style={{ maxHeight: "calc(70vh - 4rem)", maxWidth: "100%" }}
+              alt={currentFile?.name}
+              className="max-w-full max-h-[50vh] md:max-h-[70vh] object-contain"
             />
           )}
         </div>
@@ -215,49 +225,49 @@ const MediaModal: React.FC<MediaModalProps> = ({
         {/* Boutons de navigation (en plus du swipe) */}
         <button
           onClick={handlePrevious}
-          className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white text-5xl md:text-6xl lg:text-7xl p-2"
+          className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white text-3xl md:text-5xl p-2"
         >
           &#8249;
         </button>
         <button
           onClick={handleNext}
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white text-5xl md:text-6xl lg:text-7xl p-2"
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white text-3xl md:text-5xl p-2"
         >
           &#8250;
         </button>
 
         {/* Footer avec les boutons */}
-        <div className="bg-dark2 py-3 px-4 flex flex-col md:flex-row justify-around space-y-4 md:space-y-0 md:space-x-4">
-          {/* Bouton Télécharger */}
-          <button
-            className="bg-greenPrimary text-white px-4 py-2 rounded-md flex items-center justify-center md:inline-block"
-            onClick={handleDownload}
-          >
-            <ArrowDownTrayIcon className="w-5 h-5 md:hidden" />
-            <span className="hidden md:inline">Télécharger</span>
-          </button>
+        <div className="bg-dark2 py-3 px-4 flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4 md:justify-between md:items-center">
+          {/* Groupe des deux premiers boutons */}
+          <div className="flex space-x-4 justify-center md:justify-start w-full md:w-auto">
+            {/* Bouton Télécharger */}
+            <button
+              className="bg-greenPrimary text-white px-4 py-2 rounded-md flex items-center justify-center w-full md:w-auto"
+              onClick={handleDownload}
+            >
+              <ArrowDownTrayIcon className="w-5 h-5 md:hidden" />
+              <span className="hidden md:inline">Télécharger</span>
+            </button>
 
-          {/* Bouton Favoris */}
-          <button
-            className="bg-greenPrimary text-white px-4 py-2 rounded-md flex items-center justify-center md:inline-block"
-            onClick={handleToggleFavorite}
-          >
-            {/* Sur mobile, change l'icône selon l'état isFavorite */}
-            {isFavorite ? (
-              <HeartIcon className="w-5 h-5 fill-current text-red-500 md:hidden" />
-            ) : (
-              <HeartIcon className="w-5 h-5 md:hidden" />
-            )}
-
-            {/* Afficher le texte sur les écrans plus grands */}
-            <span className="hidden md:inline">
-              {isFavorite ? "Retirer des Favoris" : "Ajouter aux Favoris"}
-            </span>
-          </button>
+            {/* Bouton Favoris */}
+            <button
+              className="bg-greenPrimary text-white px-4 py-2 rounded-md flex items-center justify-center w-full md:w-auto"
+              onClick={handleToggleFavorite}
+            >
+              {isFavorite ? (
+                <HeartIcon className="w-5 h-5 fill-current text-red-500 md:hidden" />
+              ) : (
+                <HeartIcon className="w-5 h-5 md:hidden" />
+              )}
+              <span className="hidden md:inline">
+                {isFavorite ? "Retirer des Favoris" : "Ajouter aux Favoris"}
+              </span>
+            </button>
+          </div>
 
           {/* Bouton Supprimer */}
           <button
-            className="bg-redPrimary text-white px-4 py-2 rounded-md flex items-center justify-center md:inline-block"
+            className="bg-redPrimary text-white px-4 py-2 rounded-md flex items-center justify-center w-full md:w-auto md:self-end"
             onClick={handleDelete}
           >
             <TrashIcon className="w-5 h-5 md:hidden" />

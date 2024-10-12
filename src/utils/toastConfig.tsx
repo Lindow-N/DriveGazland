@@ -127,3 +127,46 @@ export const showMockToast = (message: string | null = null) => {
     }
   );
 };
+
+export const showAchievementToast = (achievement: any) => {
+  const toastMessage = `Succès débloqué: ${achievement.name}`;
+  const imageSrc = `/images/success/${achievement.id}.png`; // Utilisation de l'ID pour charger l'image
+
+  toast.success(
+    <div className="flex items-center">
+      <div
+        style={{
+          width: "75px",
+          height: "75px",
+          flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-start",
+        }}
+      >
+        <Image
+          src={imageSrc} // Image du succès basée sur l'ID
+          alt={achievement.name}
+          layout="intrinsic"
+          width={75}
+          height={75}
+        />
+      </div>
+      <span className="flex-grow text-left ml-3" style={{ color: "#ffffff" }}>
+        {toastMessage}
+      </span>
+    </div>,
+    {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "colored",
+      icon: false,
+      style: { backgroundColor: "#1C7B47", color: "#ffffff" },
+    }
+  );
+};

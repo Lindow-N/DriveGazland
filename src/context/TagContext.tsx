@@ -22,13 +22,16 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
   const [tagsWithData, setTagsWithData] = useState<{ id: string; data: any }[]>(
     []
   );
+  const [linkedTags, setLinkedTags] = useState<
+    { id: string; group: string; tags: string[] }[]
+  >([]); // Ajout de setLinkedTags
   const [loadingTags, setLoadingTags] = useState<boolean>(true);
-  const [totalTags, setTotalTags] = useState<number>(0); // État pour stocker le nombre total de tags
+  const [totalTags, setTotalTags] = useState<number>(0);
 
   useEffect(() => {
     const tagsQuery = query(collection(db, "tags"), orderBy("name", "asc"));
 
-    const unsubscribe = onSnapshot(tagsQuery, (querySnapshot) => {
+    const unsubscribeTags = onSnapshot(tagsQuery, (querySnapshot) => {
       const tagList = querySnapshot.docs.map((doc) => doc.id);
       const tagsDataList = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -37,15 +40,41 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
 
       setTags(tagList);
       setTagsWithData(tagsDataList);
-      setTotalTags(querySnapshot.size); // Met à jour le nombre total de tags
+      setTotalTags(querySnapshot.size);
       setLoadingTags(false);
     });
 
-    return () => unsubscribe(); // Cleanup l'écoute lorsque le composant est démonté
+    // Ajout de la logique pour récupérer les linkedTags
+    const linkedTagsQuery = collection(db, "linkedTags");
+    const unsubscribeLinkedTags = onSnapshot(
+      linkedTagsQuery,
+      (querySnapshot) => {
+        const linkedTagsList = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          group: doc.data().group,
+          tags: doc.data().tags,
+        }));
+        setLinkedTags(linkedTagsList);
+      }
+    );
+
+    return () => {
+      unsubscribeTags();
+      unsubscribeLinkedTags();
+    };
   }, []);
 
   return (
-    <TagContext.Provider value={{ tags, tagsWithData, loadingTags, totalTags }}>
+    <TagContext.Provider
+      value={{
+        tags,
+        tagsWithData,
+        linkedTags,
+        setLinkedTags,
+        loadingTags,
+        totalTags,
+      }}
+    >
       {children}
     </TagContext.Provider>
   );

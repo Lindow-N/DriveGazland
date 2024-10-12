@@ -17,4 +17,5 @@ export interface MediaModalProps {
   files: AppFile[];
   currentIndex: number;
   onClose: () => void;
+  onFileChange: (index: number) => void;
 }

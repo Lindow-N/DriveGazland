@@ -2,13 +2,20 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { auth, db } from "../firebase/firebaseConfig";
-import { doc, onSnapshot, collection } from "firebase/firestore";
+import {
+  doc,
+  onSnapshot,
+  collection,
+  updateDoc,
+  arrayUnion,
+} from "firebase/firestore";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { createContext, useContext, useEffect, useState } from "react";
 import { showSuccessToast, showErrorToast } from "../utils/toastConfig";
 import { User } from "../interfaces/auth";
 import { UserContextType } from "../interfaces/context";
 import { useTags } from "./TagContext";
+import { unlockAchievement } from "../firebase/users/successService";
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
@@ -62,10 +69,33 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                     "/ranking",
                     "/profile",
                     "/uploadMedia",
+                    "/linked",
                   ].includes(pathname ?? "")
                 ) {
                   router.push("/dashboard");
                 }
+              }
+            }
+
+            // Vérification du succès 420 (connexion à 16h20 ou 4h20) à l'heure de Paris
+            const now = new Date();
+            const parisTime = now.toLocaleString("fr-FR", {
+              timeZone: "Europe/Paris",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false, // Format 24h
+            });
+
+            const [currentHour, currentMinutes] = parisTime
+              .split(":")
+              .map(Number);
+
+            if (
+              (currentHour === 16 && currentMinutes === 20) ||
+              (currentHour === 4 && currentMinutes === 20)
+            ) {
+              if (!userData.achievements?.[11]) {
+                unlockAchievement(userData.id, 11); // Succès 420
               }
             }
           } else {
@@ -101,6 +131,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
+      if (user && !user.achievements?.[14]) {
+        await unlockAchievement(user.id, 14); // Succès déconnexion
+      }
+
       await signOut(auth);
       setUser(null);
       setToastShown(false);

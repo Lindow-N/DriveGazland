@@ -8,6 +8,7 @@ import withAuth from "../../utils/withAuth";
 import { useUser } from "../../context/UserContext";
 import { Timestamp } from "firebase/firestore";
 import { getDownloadUrlFromStoragePath } from "../../utils/helper";
+import { achievementsList } from "../../utils/achievementsList"; // La liste des succès disponibles
 
 const ProfilePage: React.FC = () => {
   // État pour les tags et les succès
@@ -19,31 +20,23 @@ const ProfilePage: React.FC = () => {
   >([]);
 
   const formatDate = (creationDate: Timestamp | Date) => {
-    // Si c'est un Timestamp, on le convertit en Date
     if (creationDate instanceof Timestamp) {
-      const date = creationDate.toDate(); // Convertir en objet Date
+      const date = creationDate.toDate();
       return date.toLocaleDateString("fr-FR", {
         year: "numeric",
         month: "long",
         day: "numeric",
       });
     } else if (creationDate instanceof Date) {
-      // Si c'est déjà une Date, on la formate directement
       return creationDate.toLocaleDateString("fr-FR", {
         year: "numeric",
         month: "long",
         day: "numeric",
       });
     } else {
-      return "Date non disponible"; // Cas où la date n'est pas définie
+      return "Date non disponible";
     }
   };
-
-  useEffect(() => {
-    if (!loading) {
-      console.log("Données utilisateur:", user);
-    }
-  }, [user, loading]);
 
   useEffect(() => {
     const fetchRecentFilesUrls = async () => {
@@ -60,83 +53,6 @@ const ProfilePage: React.FC = () => {
 
     fetchRecentFilesUrls();
   }, [user]);
-
-  // Liste des succès (exemple)
-  const achievements = [
-    {
-      id: 1,
-      name: "1er Upload",
-      description: "Ajouter votre premier fichier",
-      unlocked: true,
-    },
-    {
-      id: 2,
-      name: "2000",
-      description: "moi au moins, je suis pas un 2000", // poster un fichier avec le tag 2000
-      unlocked: true,
-    },
-
-    {
-      id: 7,
-      name: " J'représente le sept",
-      description: "Créer 7 tags",
-      unlocked: true,
-    },
-    {
-      id: 8,
-      name: "Around 8",
-      description: "Ajouter 8 fichiers",
-      unlocked: true,
-    },
-    {
-      id: 9,
-      name: "Bonne pioche !",
-      description: "télécharger un fichier",
-      unlocked: true,
-    },
-    {
-      id: 10,
-      name: "Ghost 10",
-      description: "Créer 10 tags",
-      unlocked: true,
-    },
-    {
-      id: 13,
-      name: "13",
-      description: "Ajouter 13 fichiers",
-      unlocked: true,
-    },
-    {
-      id: 21,
-      name: "Tu crées une règle.",
-      description: "Créer 21 tags",
-      unlocked: true,
-    },
-    {
-      id: 69,
-      name: "hentai",
-      description: "Ajouter 69 fichiers",
-      unlocked: true,
-    },
-    {
-      id: 99,
-      name: "we are 99",
-      description: "Ajouter 99 fichiers",
-      unlocked: true,
-    },
-    {
-      id: 420,
-      name: "420",
-      description: "Célébrer le 420.", // se co a 16h20 ou 4h20
-      unlocked: true,
-    },
-    {
-      id: 500,
-      name: "Maître des tags",
-      description: "Créer 50 tags", // se co a 16h20 ou 4h20
-      unlocked: true,
-    },
-  ];
 
   return (
     <DashboardLayout>
@@ -191,7 +107,7 @@ const ProfilePage: React.FC = () => {
                   {file.storagePath.includes("video") ||
                   file.storagePath.includes("mp4") ? (
                     <video
-                      src={file.url ?? ""} // Utiliser l'URL récupérée
+                      src={file.url ?? ""}
                       controls
                       className="w-full h-auto object-contain rounded-md"
                     />
@@ -199,7 +115,7 @@ const ProfilePage: React.FC = () => {
                     <Zoom>
                       <div className="relative pb-[80%] bg-dark3 rounded-md overflow-hidden">
                         <img
-                          src={file.url ?? ""} // Utiliser l'URL récupérée
+                          src={file.url ?? ""}
                           alt={`Fichier récent ${index + 1}`}
                           className="absolute top-0 left-0 w-full h-full object-cover rounded-md cursor-pointer"
                         />
@@ -246,27 +162,12 @@ const ProfilePage: React.FC = () => {
           </div>
         )}
 
-        {/* Si aucun fichier récent ou tag n'est disponible */}
-        {!loading && user?.recentFiles?.length === 0 && (
-          <div className="bg-dark2 p-4 rounded-lg shadow-md mb-6">
-            <h2 className="text-2xl font-bold font-title">Fichiers récents</h2>
-            <p className="font-body">Les connards upload rien</p>
-          </div>
-        )}
-
-        {!loading && user?.createdTags?.length === 0 && (
-          <div className="bg-dark2 p-4 rounded-lg shadow-md mb-6">
-            <h2 className="text-2xl font-bold font-title">Tags</h2>
-            <p className="font-body">Aucun tag disponible.</p>
-          </div>
-        )}
-
         {/* Succès */}
         <div className="bg-dark2 p-4 rounded-lg shadow-md">
           <h2 className="text-2xl font-bold font-title text-center">Succès</h2>
           <div className="mt-4 flex flex-col items-center justify-center">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full max-w-5xl">
-              {achievements.map((ach) => (
+              {achievementsList.map((ach) => (
                 <div
                   key={ach.id}
                   className="bg-dark3 p-4 rounded-lg shadow-md flex flex-col items-center justify-center transition-shadow duration-300"
@@ -274,7 +175,8 @@ const ProfilePage: React.FC = () => {
                   <div className="w-full h-full flex items-center justify-center">
                     <img
                       src={
-                        ach.unlocked
+                        Array.isArray(user?.achievements) &&
+                        user?.achievements.includes(ach.id)
                           ? `/images/success/${ach.id}.png`
                           : "/images/success/locked.png"
                       }
@@ -284,7 +186,7 @@ const ProfilePage: React.FC = () => {
                   </div>
                   {ach.description && (
                     <p className="text-s text-gray-400 font-body text-center">
-                      {ach.description}
+                      {ach.name}
                     </p>
                   )}
                 </div>

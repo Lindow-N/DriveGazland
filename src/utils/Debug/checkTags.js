@@ -1,4 +1,5 @@
 import { getDocs, collection } from "firebase/firestore"; // Assure-toi d'importer Firebase
+import { db } from "../../firebase/firebaseConfig";
 
 // Fonction pour récupérer tous les tags des fichiers sans doublons
 const getUniqueTagsFromFiles = async (db) => {

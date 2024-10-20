@@ -76,6 +76,7 @@ const DashboardHeader: React.FC<HeaderProps> = ({
     };
   }, [selectedTags, searchFilesByTags, onSearchResults]);
 
+  console.log("tags", tags);
   return (
     <>
       <header className="bg-dark2 px-8 py-7 flex justify-between items-center">

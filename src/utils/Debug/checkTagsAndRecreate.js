@@ -49,7 +49,7 @@ const createTagInTagsTable = async (
 // Appel pour recréer le tag "casi"
 const recreateTag = async () => {
   const db = getFirestore();
-  const tagName = "casi";
+  const tagName = "affiche";
   const lastAddedFileStoragePath =
     "images/casi_ghost_montage_1727437155160.png";
   const createdBy = "zOm5Piw7tYPDTQsxzhDXJOJyqgB3";

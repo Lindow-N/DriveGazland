@@ -18,7 +18,7 @@ import { downloadFile, deleteFile } from "../../firebase/files/filesServices";
 import { MediaModalProps } from "../../interfaces/media";
 import { showSuccessToast } from "../../utils/toastConfig";
 import { unlockAchievement } from "../../firebase/users/successService";
-import Zoom from "react-medium-image-zoom";
+import { showErrorToast } from "../../utils/toastConfig";
 
 // Utiliser la fonction isVideo comme dans FileGrid
 const isVideo = (storagePath: string | undefined) => {
@@ -35,6 +35,7 @@ const MediaModal: React.FC<MediaModalProps> = ({
   const [isFavorite, setIsFavorite] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [addedByUser, setAddedByUser] = useState<string | null>(null);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
 
   const currentFile = files[currentFileIndex];
 
@@ -55,10 +56,7 @@ const MediaModal: React.FC<MediaModalProps> = ({
           setImageUrl(downloadURL);
         }
       } catch (error) {
-        console.error(
-          "Erreur lors de la récupération de l'URL de l'image :",
-          error
-        );
+        showErrorToast();
       }
     };
 
@@ -82,12 +80,10 @@ const MediaModal: React.FC<MediaModalProps> = ({
         }
       });
 
-      // Nettoyage pour éviter les fuites de mémoire
       return () => unsubscribe();
     }
   }, [user, currentFile]);
 
-  // Récupérer les informations de l'utilisateur qui a ajouté l'image/vidéo
   const fetchUserData = async () => {
     const userName = await fetchAddedByUser(currentFile?.addBy);
     setAddedByUser(userName);
@@ -121,7 +117,6 @@ const MediaModal: React.FC<MediaModalProps> = ({
     try {
       await downloadFile(currentFile?.storagePath, currentFile?.name);
 
-      // Vérifie si 'achievements' est bien un tableau et si le numéro 5 est présent
       const hasAchievement5 =
         Array.isArray(user.achievements) && user.achievements.includes(5);
 
@@ -138,11 +133,10 @@ const MediaModal: React.FC<MediaModalProps> = ({
     setIsFavorite(addedToFavorites);
 
     if (!addedToFavorites) {
-      // Si le fichier est retiré des favoris, passer à l'image suivante ou fermer la modal
       if (files.length > 1) {
-        handleNext(); // Passer à l'image suivante
+        handleNext();
       } else {
-        onClose(); // Fermer la modal s'il n'y a plus de fichiers
+        onClose();
       }
     }
   };
@@ -174,7 +168,7 @@ const MediaModal: React.FC<MediaModalProps> = ({
         console.error(result.message);
       }
     } catch (error) {
-      console.error("Erreur lors de la suppression du fichier :", error);
+      showErrorToast();
     }
   };
 
@@ -189,30 +183,44 @@ const MediaModal: React.FC<MediaModalProps> = ({
         {...handlers}
       >
         {/* Header avec le nom de l'image et ajouté par */}
-        <div className="bg-dark2 py-2 px-4 flex flex-col">
-          <span className="text-white text-lg truncate">
-            {currentFile?.name}
-          </span>
-          <span className="text-gray-400 text-sm">
-            Ajouté par : {addedByUser}
-          </span>
-          <button
-            onClick={onClose}
-            className="absolute top-2 right-2 text-white md:text-lg text-base"
-          >
-            <XMarkIcon className="w-5 h-5 md:w-6 md:h-6" />
-          </button>
+        <div className="bg-dark2 py-2 px-4 flex flex-col relative">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-white text-lg truncate">
+                {currentFile?.name}
+              </span>
+              <span className="text-gray-400 text-sm">
+                Ajouté par : {addedByUser}
+              </span>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-white md:text-lg text-base flex items-center"
+            >
+              <XMarkIcon className="w-5 h-5 md:w-6 md:h-6" />
+            </button>
+          </div>
         </div>
 
         {/* Contenu du média */}
         <div className="flex items-center justify-center w-full h-full p-4 overflow-hidden">
           {isVideo(currentFile?.storagePath) ? (
-            <video
-              src={imageUrl}
-              className="max-w-full max-h-[50vh] md:max-h-[70vh] object-contain"
-              controls
-              autoPlay
-            />
+            <>
+              {isVideoLoading && (
+                <div className="loader w-16 h-16 border-t-4 border-greenPrimary border-solid rounded-full animate-spin"></div> // Ajout du loader pendant le chargement
+              )}
+              <video
+                src={imageUrl}
+                className={`max-w-full max-h-[50vh] md:max-h-[70vh] object-contain ${
+                  isVideoLoading ? "hidden" : ""
+                }`} // Masquer la vidéo pendant le chargement
+                controls
+                autoPlay
+                onLoadedData={() => setIsVideoLoading(false)} // Lorsque la vidéo est prête, désactiver le loader
+                onPlay={() => setIsVideoLoading(false)} // En cas de lecture forcée
+                onPause={() => setIsVideoLoading(false)} // En cas de pause forcée
+              />
+            </>
           ) : (
             <img
               src={imageUrl}
@@ -223,18 +231,22 @@ const MediaModal: React.FC<MediaModalProps> = ({
         </div>
 
         {/* Boutons de navigation (en plus du swipe) */}
-        <button
-          onClick={handlePrevious}
-          className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white text-3xl md:text-5xl p-2"
-        >
-          &#8249;
-        </button>
-        <button
-          onClick={handleNext}
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white text-3xl md:text-5xl p-2"
-        >
-          &#8250;
-        </button>
+        {files.length > 1 && (
+          <>
+            <button
+              onClick={handlePrevious}
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white text-3xl md:text-5xl p-2"
+            >
+              &#8249;
+            </button>
+            <button
+              onClick={handleNext}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white text-3xl md:text-5xl p-2"
+            >
+              &#8250;
+            </button>
+          </>
+        )}
 
         {/* Footer avec les boutons */}
         <div className="bg-dark2 py-3 px-4 flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4 md:justify-between md:items-center">

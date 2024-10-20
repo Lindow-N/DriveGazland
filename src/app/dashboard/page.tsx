@@ -137,7 +137,7 @@ const DashboardPage: React.FC = () => {
       <div className="min-h-screen bg-dark1">
         {searchResults.length === 0 && selectedTags.length > 0 ? (
           <div className="flex justify-center items-center h-96">
-            <p className="text-white text-lg">
+            <p className="text-white text-lg text-center">
               Aucun fichier trouvé pour les tags sélectionnés
             </p>
           </div>
@@ -151,7 +151,7 @@ const DashboardPage: React.FC = () => {
               selectedTags.length === 0
             }
             onTagClick={(tag) => setSelectedTags([tag])}
-            onFileClick={(index) => setSelectedFileIndex(index)} // Ouvre MediaModal avec l'index
+            onFileClick={(index) => setSelectedFileIndex(index)}
           />
         )}
       </div>
@@ -160,8 +160,8 @@ const DashboardPage: React.FC = () => {
         <MediaModal
           files={filesToDisplay}
           currentIndex={selectedFileIndex}
-          onClose={() => setSelectedFileIndex(null)} // Fermer la modal
-          onFileChange={handleFileChange} // Gérer la mise à jour des fichiers lors des suppressions
+          onClose={() => setSelectedFileIndex(null)}
+          onFileChange={handleFileChange}
         />
       )}
     </DashboardLayout>

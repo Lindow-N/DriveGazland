@@ -186,9 +186,10 @@ const MediaModal: React.FC<MediaModalProps> = ({
         <div className="bg-dark2 py-2 px-4 flex flex-col relative">
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-white text-lg truncate">
+              <span className="text-white text-lg truncate max-w-[25ch] md:max-w-full">
                 {currentFile?.name}
               </span>
+
               <span className="text-gray-400 text-sm">
                 Ajouté par : {addedByUser}
               </span>

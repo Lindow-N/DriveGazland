@@ -5,6 +5,7 @@ import DashboardLayout from "../../layouts/DashboardLayout";
 import CategoryList from "../../components/list/CategoryList";
 import withAuth from "../../utils/withAuth";
 import { useUser } from "../../context/UserContext";
+import { StarIcon } from "@heroicons/react/24/solid";
 
 const RankingPage: React.FC = () => {
   const categories = [
@@ -49,11 +50,25 @@ const RankingPage: React.FC = () => {
         {/* Liste des utilisateurs triés */}
         <div className="bg-dark2 p-4 rounded-lg shadow-md mt-6">
           <div className="space-y-4">
-            {sortedUsers.map((user) => (
+            {sortedUsers.map((user, index) => (
               <div
                 key={user.id}
                 className="flex items-center bg-dark3 p-4 rounded-md shadow hover:shadow-lg transition-shadow duration-300"
               >
+                {/* Affichage de la médaille */}
+                <div className="mr-4 flex items-center">
+                  {index === 0 ? (
+                    <StarIcon className="w-6 h-6 text-yellow-400" />
+                  ) : index === 1 ? (
+                    <StarIcon className="w-6 h-6 text-gray-400" />
+                  ) : index === 2 ? (
+                    <StarIcon className="w-6 h-6 text-amber-600" />
+                  ) : (
+                    <span className="w-6 h-6 text-gray-500">{index + 1}</span>
+                  )}
+                </div>
+
+                {/* Détails de l'utilisateur */}
                 <div className="flex-1">
                   <h3 className="font-bold text-white">{user.pseudonym}</h3>
                 </div>

@@ -42,13 +42,13 @@ export const calculateFilesToShow = (
   files,
   isTagView,
   baseCount = 29,
-  videoWeight = 3
+  videoWeight = 3,
+  tagViewLimit = 54 // Limite stricte pour la vue par tags
 ) => {
   if (isTagView) {
-    return 71; // Dans le cas où on est en vue par tag, on retourne directement 101 éléments
+    return Math.min(files.length, tagViewLimit); // Ne pas dépasser 50 éléments en vue par tags
   }
 
-  // Sinon on applique la logique de calcul en fonction des vidéos
   const videoCount = files.filter((file) =>
     file.storagePath.startsWith("videos/")
   ).length;

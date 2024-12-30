@@ -12,6 +12,7 @@ import {
   UserCircleIcon,
   Bars3Icon,
   LinkIcon,
+  MusicalNoteIcon, // Ajout de l'icône pour Audio
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import { auth } from "../firebase/firebaseConfig";
@@ -31,6 +32,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { totalTags } = useTags();
   const { totalFiles, loadingFiles } = useFiles();
 
+  const { user } = useUser();
+
   const handleSignOut = async () => {
     try {
       await logout();
@@ -44,13 +47,17 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     router.push("/profile");
   };
 
-  // Fonction pour fermer la sidebar
-  const handleCloseSidebar = () => {
-    setIsSidebarOpen(false);
+  const handleAudioClick = () => {
+    router.push("/audio");
   };
 
   const handleRankingClick = () => {
     router.push("/ranking");
+  };
+
+  // Fonction pour fermer la sidebar
+  const handleCloseSidebar = () => {
+    setIsSidebarOpen(false);
   };
 
   // Empêcher le défilement du body lorsque la sidebar est ouverte
@@ -113,6 +120,22 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                   <span className="ml-3">Accueil</span>
                 </a>
               </li>
+
+              {/* Nouvelle catégorie Audio */}
+              <li>
+                <a
+                  href="/audio"
+                  className="flex items-center p-2 text-gray-100 rounded-lg dark:text-white hover:bg-gray-700 hover:text-white transition duration-150 ease-in-out"
+                  onClick={() => {
+                    handleAudioClick();
+                    handleCloseSidebar();
+                  }}
+                >
+                  <MusicalNoteIcon className="w-6 h-6 text-gray-400 group-hover:text-white" />
+                  <span className="ml-3">Audio</span>
+                </a>
+              </li>
+
               <li>
                 <a
                   href="/ranking"

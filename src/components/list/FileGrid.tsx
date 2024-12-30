@@ -29,8 +29,9 @@ const FileGrid: React.FC<FileGridProps> = ({
   const [fileUrls, setFileUrls] = useState<(string | null)[]>([]);
   const [visibleFiles, setVisibleFiles] = useState<AppFile[]>([]);
   const [filesToShow, setFilesToShow] = useState<number>(
-    calculateFilesToShow(files, isTagView, 35) // On passe `isTagView` ici
+    calculateFilesToShow(files, isTagView, 25, 3, 53) // Ajoute le `tagViewLimit` à 50
   );
+
   const [showButton, setShowButton] = useState<boolean>(false);
   const [loadingVideos, setLoadingVideos] = useState<boolean[]>([]);
 
@@ -51,7 +52,7 @@ const FileGrid: React.FC<FileGridProps> = ({
 
   // Retarder l'affichage du bouton "Voir plus" après 1 seconde
   useEffect(() => {
-    const timer = setTimeout(() => setShowButton(true), 1000);
+    const timer = setTimeout(() => setShowButton(true), 800);
     return () => clearTimeout(timer);
   }, []);
 
@@ -78,14 +79,17 @@ const FileGrid: React.FC<FileGridProps> = ({
   };
 
   const handleShowMore = () => {
-    setFilesToShow((prevCount) => prevCount + 50);
+    if (isTagView) {
+      setFilesToShow((prevCount) => Math.min(prevCount + 40, files.length));
+    } else {
+      setFilesToShow((prevCount) => prevCount + 40); // Lot différent hors vue par tags
+    }
   };
 
   // Gestion de l'état de chargement des vidéos
   const handleVideoLoaded = (index: number) => {
     const updatedLoading = [...loadingVideos];
     updatedLoading[index] = false; // Vidéo chargée, on désactive le loader pour cet index
-    setLoadingVideos(updatedLoading);
   };
 
   return (

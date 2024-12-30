@@ -67,6 +67,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                   ![
                     "/dashboard",
                     "/ranking",
+                    "/audio",
                     "/profile",
                     "/uploadMedia",
                     "/linked",

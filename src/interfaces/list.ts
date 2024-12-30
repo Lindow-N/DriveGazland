@@ -1,3 +1,5 @@
+import { SandboxGroup } from "./sandbox";
+
 // Renommer l'interface `File` pour éviter les conflits avec le type natif `File`
 export interface AppFile {
   id: string;
@@ -34,4 +36,17 @@ export interface CategoryListProps {
   categories: string[];
   selectedCategory: string;
   onCategorySelect: (category: string) => void;
+}
+
+export interface SandboxListProps {
+  groups: SandboxGroup[];
+  currentlyPlaying: string | null;
+  onPlayPauseAudio: (fileUrl: string, fileId: string) => void;
+  onAddAudioToGroup: () => void;
+  selectedGroup: string | null;
+  setSelectedGroup: (groupId: string | null) => void;
+  audioFile: File | null;
+  audioName: string;
+  setAudioFile: (file: File | null) => void;
+  setAudioName: (name: string) => void;
 }
